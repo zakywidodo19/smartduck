@@ -6,6 +6,7 @@ import MonthlyChart from "../../components/cards/MonthlyChart";
 import KandangPerformance from "../../components/cards/KandangPerformance";
 import { FaEgg, FaChartLine, FaCheckCircle, FaMoneyBillWave } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
+import { produksiService } from "../../services/produksiService";
 
 function PimpinanDashboard() {
   const { user } = useAuth();
@@ -16,13 +17,30 @@ function PimpinanDashboard() {
     totalPendapatan: 0,
   });
 
+  const [produksiData, setProduksiData] = useState([]);
+
   useEffect(() => {
-    // Simulasi pengambilan data analitik untuk pimpinan
-    setStats({
-      totalProduksiBulanan: 0,
-      rataRataPerforma: 0,
-      totalPendapatan: 0,
-    });
+    const fetchData = async () => {
+      const pData = await produksiService.getAll();
+      setProduksiData(pData);
+      
+      const currentYear = new Date().getFullYear();
+      const currentMonth = new Date().getMonth();
+      
+      const produksiBulanan = pData
+        .filter(item => {
+           const d = new Date(item.tanggal);
+           return d.getFullYear() === currentYear && d.getMonth() === currentMonth;
+        })
+        .reduce((sum, item) => sum + Number(item.telurBagus), 0);
+        
+      setStats({
+        totalProduksiBulanan: produksiBulanan,
+        rataRataPerforma: 0,
+        totalPendapatan: produksiBulanan * 2000, // asumsikan harga Rp2.000 per butir
+      });
+    };
+    fetchData();
   }, []);
 
   return (
@@ -81,7 +99,7 @@ function PimpinanDashboard() {
             
             <StatCard
               title="Estimasi Pendapatan"
-              value={`Rp ${(stats.totalPendapatan / 1000000).toFixed(1)}Jt`}
+              value={`Rp ${stats.totalPendapatan.toLocaleString('id-ID')}`}
               color="text-emerald-500"
               darkMode={darkMode}
               icon={<FaMoneyBillWave className="text-emerald-500" />}
@@ -91,11 +109,11 @@ function PimpinanDashboard() {
 
           {/* GRAFIK PRODUKSI FULL WIDTH */}
           <div className="mb-6 sm:mb-8">
-             <MonthlyChart darkMode={darkMode} />
+             <MonthlyChart darkMode={darkMode} rawData={produksiData} />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-6">
-            <ProductionChart darkMode={darkMode} />
+            <ProductionChart darkMode={darkMode} rawData={produksiData} />
             <KandangPerformance darkMode={darkMode} />
           </div>
 

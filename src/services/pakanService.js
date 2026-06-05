@@ -1,15 +1,9 @@
-/* 
-  CONTOH IMPLEMENTASI SERVICE LAYER UNTUK KANDANG (FIRESTORE)
-  Layer ini memisahkan logika database dari komponen UI.
-*/
-
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 
-const collectionName = "kandang";
+const collectionName = "pakan";
 
-export const kandangService = {
-  // Mendapatkan semua data kandang
+export const pakanService = {
   getAll: async () => {
     try {
       const querySnapshot = await getDocs(collection(db, collectionName));
@@ -18,42 +12,39 @@ export const kandangService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error("Error fetching kandang:", error);
+      console.error("Error fetching pakan:", error);
       return [];
     }
   },
 
-  // Menambah data kandang baru
   create: async (data) => {
     try {
       const docRef = await addDoc(collection(db, collectionName), data);
       return docRef.id;
     } catch (error) {
-      console.error("Error creating kandang:", error);
+      console.error("Error creating pakan:", error);
       throw error;
     }
   },
 
-  // Memperbarui data kandang
   update: async (id, data) => {
     try {
-      const kandangRef = doc(db, collectionName, id);
-      await updateDoc(kandangRef, data);
+      const pakanRef = doc(db, collectionName, id);
+      await updateDoc(pakanRef, data);
       return true;
     } catch (error) {
-      console.error("Error updating kandang:", error);
+      console.error("Error updating pakan:", error);
       throw error;
     }
   },
 
-  // Menghapus data kandang
   delete: async (id) => {
     try {
-      const kandangRef = doc(db, collectionName, id);
-      await deleteDoc(kandangRef);
+      const pakanRef = doc(db, collectionName, id);
+      await deleteDoc(pakanRef);
       return true;
     } catch (error) {
-      console.error("Error deleting kandang:", error);
+      console.error("Error deleting pakan:", error);
       throw error;
     }
   }

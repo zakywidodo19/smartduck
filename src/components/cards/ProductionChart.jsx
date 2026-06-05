@@ -8,9 +8,22 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { eggProductionData } from "../../data/ChartData";
+function ProductionChart({ darkMode, rawData = [] }) {
+  // Generate last 7 days data
+  const chartData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0];
+    const dayName = d.toLocaleDateString("id-ID", { weekday: "short" });
+    
+    const total = rawData
+      .filter(item => item.tanggal === dateStr)
+      .reduce((sum, item) => sum + Number(item.telurBagus || 0), 0);
+      
+    chartData.push({ day: dayName, telur: total });
+  }
 
-function ProductionChart({ darkMode }) {
   return (
     <div
       className={`
@@ -28,7 +41,7 @@ function ProductionChart({ darkMode }) {
 
       <div className="w-full h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={eggProductionData}>
+          <LineChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={darkMode ? "#374151" : "#f0f0f0"}

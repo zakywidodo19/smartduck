@@ -1,6 +1,7 @@
-import { getDynamicKandangPerformance } from "../../data/ChartData";
+function KandangPerformance({ darkMode, rawKandang = [], rawProduksi = [] }) {
+  const currentYear  = new Date().getFullYear();
+  const currentMonth = new Date().getMonth() + 1;
 
-function KandangPerformance({ darkMode }) {
   const getPerformaColor = (performa) => {
     if (performa >= 90) return "bg-green-500";
     if (performa >= 70) return "bg-yellow-500";
@@ -14,7 +15,22 @@ function KandangPerformance({ darkMode }) {
     return "Perlu Perbaikan";
   };
 
-  const kandangPerformanceData = getDynamicKandangPerformance();
+  const kandangPerformanceData = rawKandang.map((k) => {
+    const totalTelur = rawProduksi
+      .filter((p) => {
+        if (!p.tanggal || p.kandang !== k.nama) return false;
+        const [yr, mo] = p.tanggal.split("-").map(Number);
+        return yr === currentYear && mo === currentMonth;
+      })
+      .reduce((s, p) => s + Number(p.telurBagus || 0), 0);
+
+    // Target = kapasitas bebek × 30 hari
+    const target   = Number(k.kapasitas || 0) * 30;
+    const performa = target > 0 ? Math.min(Math.round((totalTelur / target) * 100), 100) : 0;
+
+    return { name: k.nama, performa };
+  });
+
 
   return (
     <div

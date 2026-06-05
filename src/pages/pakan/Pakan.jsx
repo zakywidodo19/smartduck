@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { GiWheat } from "react-icons/gi";
 import { useAuth } from "../../contexts/AuthContext";
+import { pakanService } from "../../services/pakanService";
 
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import PakanTable from "../../components/pakan/PakanTable";
@@ -17,11 +18,8 @@ function Pakan() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
-  // Data
-  const [pakanData, setPakanData] = useState(() => {
-    const saved = localStorage.getItem("smartduck_pakan");
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [pakanData, setPakanData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Search & Filter
   const [search, setSearch] = useState("");
@@ -31,18 +29,26 @@ function Pakan() {
   const [currentPage, setCurrentPage] = useState(1);
   const dataPerPage = 5;
 
-  // Save to localStorage
+  const fetchData = async () => {
+    setIsLoading(true);
+    const data = await pakanService.getAll();
+    setPakanData(data);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    localStorage.setItem("smartduck_pakan", JSON.stringify(pakanData));
-  }, [pakanData]);
+    fetchData();
+  }, []);
 
   // Filtered data
-  const filteredData = pakanData.filter((item) => {
+  const filteredData = (pakanData || []).filter((item) => {
+    const kTujuan = item?.kandangTujuan || "";
+    const jPakan = item?.jenisPakan || "";
     const matchSearch =
-      item.kandangTujuan.toLowerCase().includes(search.toLowerCase()) ||
-      item.jenisPakan.toLowerCase().includes(search.toLowerCase());
+      kTujuan.toLowerCase().includes(search.toLowerCase()) ||
+      jPakan.toLowerCase().includes(search.toLowerCase());
     const matchFilter =
-      filterJenis === "Semua" ? true : item.jenisPakan === filterJenis;
+      filterJenis === "Semua" ? true : jPakan === filterJenis;
     return matchSearch && matchFilter;
   });
 
@@ -53,58 +59,31 @@ function Pakan() {
   const totalPages = Math.ceil(filteredData.length / dataPerPage) || 1;
 
   // Save
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     if (editData) {
-      const updated = pakanData.map((item) =>
-        item.id === editData.id ? { ...data, id: editData.id } : item
-      );
-      setPakanData(updated);
-      setEditData(null);
-
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Data pakan berhasil diperbarui",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
+      await pakanService.update(editData.id, data);
+      Swal.fire("Berhasil!", "Data pakan berhasil diperbarui", "success");
     } else {
-      const newData = { ...data, id: Date.now() };
-      setPakanData([newData, ...pakanData]);
-
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Data pakan berhasil ditambahkan",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
+      await pakanService.create(data);
+      Swal.fire("Berhasil!", "Data pakan berhasil ditambahkan", "success");
     }
     setIsModalOpen(false);
+    fetchData();
   };
 
   // Delete
   const handleDelete = async (id) => {
     const result = await Swal.fire({
       title: "Yakin ingin menghapus?",
-      text: "Data pakan yang dihapus tidak bisa dikembalikan!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
       confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal",
     });
 
     if (result.isConfirmed) {
-      setPakanData(pakanData.filter((item) => item.id !== id));
-      Swal.fire({
-        title: "Terhapus!",
-        text: "Data pakan berhasil dihapus",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
+      await pakanService.delete(id);
+      Swal.fire("Terhapus!", "Data pakan berhasil dihapus", "success");
+      fetchData();
     }
   };
 

@@ -4,9 +4,9 @@ import { NotificationProvider } from "./contexts/NotificationContext";
 
 import Dashboard from "./pages/dashboard/Dashboard";
 import Kandang from "./pages/kandang/Kandang";
-import Monitoring from "./pages/monitoring/Monitoring";
 import Produksi from "./pages/produksi/Produksi";
 import Laporan from "./pages/laporan/Laporan";
+import Keuangan from "./pages/keuangan/Keuangan";
 import Pakan from "./pages/pakan/Pakan";
 import Login from "./pages/auth/Login";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
@@ -15,7 +15,7 @@ function App() {
   return (
     <AuthProvider>
       <NotificationProvider>
-        <BrowserRouter>
+        <BrowserRouter basename="/smartduck/">
           <Routes>
             <Route path="/login" element={<Login />} />
 
@@ -37,14 +37,7 @@ function App() {
               }
             />
 
-            <Route
-              path="/monitoring"
-              element={
-                <ProtectedRoute>
-                  <Monitoring />
-                </ProtectedRoute>
-              }
-            />
+
 
             <Route
               path="/pakan"
@@ -69,6 +62,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Laporan />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/keuangan"
+              element={
+                <ProtectedRoute>
+                  <Keuangan />
                 </ProtectedRoute>
               }
             />

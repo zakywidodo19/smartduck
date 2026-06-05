@@ -5,10 +5,12 @@ import ProductionChart from "../../components/cards/ProductionChart";
 import MonthlyChart from "../../components/cards/MonthlyChart";
 import FeedConsumptionChart from "../../components/cards/FeedConsumptionChart";
 import KandangPerformance from "../../components/cards/KandangPerformance";
-import MonitoringTable from "../../components/tables/MonitoringTable";
 import { FaEgg, FaWarehouse, FaHeartbeat, FaLeaf } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import PimpinanDashboard from "./PimpinanDashboard";
+import { kandangService } from "../../services/kandangService";
+import { pakanService } from "../../services/pakanService";
+import { produksiService } from "../../services/produksiService";
 
 function Dashboard() {
   const { user } = useAuth();
@@ -20,22 +22,44 @@ function Dashboard() {
     kandangSakit: 0,
   });
 
-  useEffect(() => {
-    // In a real app, this would fetch from an API
-    // For now, we calculate from localStorage data
-    const kandangData = JSON.parse(localStorage.getItem("kandangData") || "[]");
-    const pakanData = JSON.parse(localStorage.getItem("smartduck_pakan") || "[]");
+  const [produksiData, setProduksiData] = useState([]);
+  const [pakanData, setPakanData]       = useState([]);
+  const [kandangList, setKandangList]   = useState([]);
 
-    const totalBebek = kandangData.reduce((sum, item) => sum + Number(item.kapasitas), 0);
-    const aktif = kandangData.filter(k => k.status === "Aktif").length;
-    
-    // Simulate some stats based on available data
-    setStats({
-      totalBebek: totalBebek || 0,
-      totalTelur: 0,
-      kandangAktif: aktif || 0,
-      kandangSakit: 0,
-    });
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [kandang, pakan, produksi] = await Promise.all([
+          kandangService.getAll(),
+          pakanService.getAll(),
+          produksiService.getAll()
+        ]);
+
+        setProduksiData(produksi);
+        setPakanData(pakan);
+        setKandangList(kandang);
+
+        const today = new Date().toISOString().split("T")[0];
+        const safeKandang = kandang || [];
+
+        const totalBebek   = safeKandang.reduce((s, k) => s + Number(k?.kapasitas || 0), 0);
+        const aktif        = safeKandang.filter(k => (k?.status || "") === "Aktif").length;
+        const tidakAktif   = safeKandang.filter(k => (k?.status || "") !== "Aktif").length;
+        const telurHariIni = produksi
+          .filter(p => p.tanggal === today)
+          .reduce((s, p) => s + Number(p.telurBagus || 0), 0);
+
+        setStats({
+          totalBebek,
+          totalTelur:   telurHariIni,
+          kandangAktif: aktif,
+          kandangSakit: tidakAktif,
+        });
+      } catch (error) {
+        console.error("Gagal mengambil data dashboard:", error);
+      }
+    };
+    fetchData();
   }, []);
 
   // Jika role adalah pimpinan, tampilkan dashboard khusus
@@ -109,22 +133,20 @@ function Dashboard() {
 
           {/* CHARTS GRID 1 */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
-            <ProductionChart darkMode={darkMode} />
-            <MonthlyChart darkMode={darkMode} />
+            <ProductionChart darkMode={darkMode} rawData={produksiData} />
+            <MonthlyChart darkMode={darkMode} rawData={produksiData} />
           </div>
 
           {/* CHARTS GRID 2 */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <div className="lg:col-span-2">
-              <FeedConsumptionChart darkMode={darkMode} />
+              <FeedConsumptionChart darkMode={darkMode} rawData={pakanData} />
             </div>
             <div>
-              <KandangPerformance darkMode={darkMode} />
+              <KandangPerformance darkMode={darkMode} rawKandang={kandangList} rawProduksi={produksiData} />
             </div>
           </div>
 
-          {/* TABLE */}
-          <MonitoringTable darkMode={darkMode} />
         </>
       )}
     </DashboardLayout>

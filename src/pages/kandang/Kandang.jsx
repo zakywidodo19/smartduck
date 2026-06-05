@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { FaWarehouse } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
+import { kandangService } from "../../services/kandangService";
 
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import KandangTable from "../../components/kandang/KandangTable";
@@ -19,11 +20,8 @@ function Kandang() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
-  // DATA
-  const [kandangData, setKandangData] = useState(() => {
-    const savedData = localStorage.getItem("kandangData");
-    return savedData ? JSON.parse(savedData) : [];
-  });
+  const [kandangData, setKandangData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // SEARCH & FILTER
   const [search, setSearch] = useState("");
@@ -33,15 +31,23 @@ function Kandang() {
   const [currentPage, setCurrentPage] = useState(1);
   const dataPerPage = 5;
 
-  // SAVE LOCAL STORAGE
+  const fetchData = async () => {
+    setIsLoading(true);
+    const data = await kandangService.getAll();
+    setKandangData(data);
+    setIsLoading(false);
+  };
+
   useEffect(() => {
-    localStorage.setItem("kandangData", JSON.stringify(kandangData));
-  }, [kandangData]);
+    fetchData();
+  }, []);
 
   // FILTER DATA
-  const filteredData = kandangData.filter((item) => {
-    const matchSearch = item.nama.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "Semua" ? true : item.status === filterStatus;
+  const filteredData = (kandangData || []).filter((item) => {
+    const itemName = item?.nama || "";
+    const itemStatus = item?.status || "";
+    const matchSearch = itemName.toLowerCase().includes(search.toLowerCase());
+    const matchStatus = filterStatus === "Semua" ? true : itemStatus === filterStatus;
     return matchSearch && matchStatus;
   });
 
@@ -52,66 +58,38 @@ function Kandang() {
   const totalPages = Math.ceil(filteredData.length / dataPerPage) || 1;
 
   // SAVE DATA
-  const handleSave = (data) => {
+  const handleSave = async (data) => {
     if (editData) {
-      const updated = kandangData.map((item) =>
-        item.nama === editData.nama ? data : item
-      );
-      setKandangData(updated);
-      setEditData(null);
-
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Data kandang berhasil diperbarui",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
+      await kandangService.update(editData.id, data);
+      Swal.fire("Berhasil!", "Data kandang diperbarui", "success");
     } else {
-      setKandangData([...kandangData, data]);
-
-      Swal.fire({
-        title: "Berhasil!",
-        text: "Data kandang berhasil ditambahkan",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
+      await kandangService.create(data);
+      Swal.fire("Berhasil!", "Data kandang ditambahkan", "success");
     }
     setIsModalOpen(false);
+    fetchData(); // Refresh data
   };
 
   // DELETE
   const handleDelete = async (index) => {
-    // Karena index yang dikirim dari table adalah index data current page, 
-    // kita perlu mencari index asli di kandangData (atau gunakan ID unik bila ada).
-    // Untuk demo ini, kita hapus berdasarkan nama (karena belum punya ID unik)
     const itemToDelete = currentData[index];
+    
+    if (!itemToDelete || !itemToDelete.id) {
+       // Support for old data without IDs (if any dummy left)
+       return;
+    }
 
     const result = await Swal.fire({
       title: "Yakin ingin menghapus?",
-      text: "Data yang dihapus tidak bisa dikembalikan!",
       icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: "#dc2626",
-      cancelButtonColor: "#6b7280",
       confirmButtonText: "Ya, Hapus!",
-      cancelButtonText: "Batal",
     });
 
     if (result.isConfirmed) {
-      const filtered = kandangData.filter((item) => item.nama !== itemToDelete.nama);
-      setKandangData(filtered);
-
-      Swal.fire({
-        title: "Terhapus!",
-        text: "Data berhasil dihapus",
-        icon: "success",
-        confirmButtonColor: "#15803d",
-        timer: 1500,
-      });
-      
-      // Prevent empty page
+      await kandangService.delete(itemToDelete.id);
+      Swal.fire("Terhapus!", "Data berhasil dihapus", "success");
+      fetchData();
       if (currentData.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
       }

@@ -9,9 +9,25 @@ import {
   Legend,
 } from "recharts";
 
-import { feedConsumptionData } from "../../data/ChartData";
+function FeedConsumptionChart({ darkMode, rawData = [] }) {
+  // Bangun data 7 hari terakhir dari rawData pakan
+  const chartData = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr  = d.toISOString().split("T")[0];
+    const dayName  = d.toLocaleDateString("id-ID", { weekday: "short" });
 
-function FeedConsumptionChart({ darkMode }) {
+    const dayEntries = rawData.filter(p => p.tanggal === dateStr);
+
+    const konsentrat = dayEntries.filter(p => p.jenisPakan === "Konsentrat").reduce((s, p) => s + Number(p.jumlah || 0), 0);
+    const dedak      = dayEntries.filter(p => p.jenisPakan === "Dedak").reduce((s, p) => s + Number(p.jumlah || 0), 0);
+    const jagung     = dayEntries.filter(p => p.jenisPakan === "Jagung").reduce((s, p) => s + Number(p.jumlah || 0), 0);
+    const lainnya    = dayEntries.filter(p => !["Konsentrat","Dedak","Jagung"].includes(p.jenisPakan)).reduce((s, p) => s + Number(p.jumlah || 0), 0);
+
+    chartData.push({ hari: dayName, konsentrat, dedak, jagung, lainnya });
+  }
+
   return (
     <div
       className={`
@@ -29,7 +45,7 @@ function FeedConsumptionChart({ darkMode }) {
 
       <div className="w-full h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={feedConsumptionData}>
+          <BarChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={darkMode ? "#374151" : "#f0f0f0"}

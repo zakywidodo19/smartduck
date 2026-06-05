@@ -1,12 +1,12 @@
 import { useState, useEffect } from "react";
 import { kandangService } from "../../services/kandangService";
 
-function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
+function ProduksiModal({ isOpen, onClose, onSave, editData, darkMode }) {
   const [formData, setFormData] = useState({
     tanggal: new Date().toISOString().split("T")[0],
-    jenisPakan: "Konsentrat",
-    jumlah: "",
-    kandangTujuan: "Kandang A",
+    kandang: "",
+    telurBagus: "",
+    telurRetak: "",
   });
 
   const [kandangOptions, setKandangOptions] = useState(["- Belum ada kandang -"]);
@@ -27,9 +27,9 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
     } else {
       setFormData({
         tanggal: new Date().toISOString().split("T")[0],
-        jenisPakan: "Konsentrat",
-        jumlah: "",
-        kandangTujuan: kandangOptions[0],
+        kandang: kandangOptions[0],
+        telurBagus: "",
+        telurRetak: "0", // Default to 0 for cracked eggs
       });
     }
   }, [editData, isOpen, kandangOptions]);
@@ -45,14 +45,14 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
     e.preventDefault();
     onSave({
       ...formData,
-      jumlah: Number(formData.jumlah),
+      telurBagus: Number(formData.telurBagus),
+      telurRetak: Number(formData.telurRetak),
+      totalTelur: Number(formData.telurBagus) + Number(formData.telurRetak)
     });
     onClose();
   };
 
   if (!isOpen) return null;
-
-  const jenisPakanOptions = ["Konsentrat", "Dedak", "Jagung", "Campuran", "Pelet"];
 
   const inputClass = `
     w-full border p-3 rounded-xl transition-all
@@ -87,13 +87,13 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h2 className={`text-2xl font-bold mb-6 ${darkMode ? "text-white" : "text-gray-800"}`}>
-          {editData ? "Edit Data Pakan" : "Tambah Data Pakan"}
+          {editData ? "Edit Produksi Telur" : "Catat Produksi Telur"}
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Tanggal */}
           <div>
-            <label className={labelClass}>Tanggal</label>
+            <label className={labelClass}>Tanggal Panen</label>
             <input
               type="date"
               name="tanggal"
@@ -104,45 +104,12 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
             />
           </div>
 
-          {/* Jenis Pakan */}
+          {/* Kandang */}
           <div>
-            <label className={labelClass}>Jenis Pakan</label>
+            <label className={labelClass}>Kandang</label>
             <select
-              name="jenisPakan"
-              value={formData.jenisPakan}
-              onChange={handleChange}
-              className={inputClass}
-            >
-              {jenisPakanOptions.map((opt) => (
-                <option key={opt} value={opt}>
-                  {opt}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Jumlah */}
-          <div>
-            <label className={labelClass}>Jumlah (Kg)</label>
-            <input
-              type="number"
-              name="jumlah"
-              value={formData.jumlah}
-              onChange={handleChange}
-              placeholder="Masukkan jumlah dalam Kg"
-              className={inputClass}
-              min="0"
-              step="0.5"
-              required
-            />
-          </div>
-
-          {/* Kandang Tujuan */}
-          <div>
-            <label className={labelClass}>Kandang Tujuan</label>
-            <select
-              name="kandangTujuan"
-              value={formData.kandangTujuan}
+              name="kandang"
+              value={formData.kandang}
               onChange={handleChange}
               className={inputClass}
             >
@@ -152,6 +119,36 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Telur Bagus */}
+          <div>
+            <label className={labelClass}>Telur Bagus (Butir)</label>
+            <input
+              type="number"
+              name="telurBagus"
+              value={formData.telurBagus}
+              onChange={handleChange}
+              placeholder="Jumlah telur bagus"
+              className={inputClass}
+              min="0"
+              required
+            />
+          </div>
+
+          {/* Telur Retak/Rusak */}
+          <div>
+            <label className={labelClass}>Telur Retak/Rusak (Butir)</label>
+            <input
+              type="number"
+              name="telurRetak"
+              value={formData.telurRetak}
+              onChange={handleChange}
+              placeholder="Jumlah telur rusak"
+              className={inputClass}
+              min="0"
+              required
+            />
           </div>
 
           {/* Buttons */}
@@ -185,4 +182,4 @@ function PakanModal({ isOpen, onClose, onSave, editData, darkMode }) {
   );
 }
 
-export default PakanModal;
+export default ProduksiModal;

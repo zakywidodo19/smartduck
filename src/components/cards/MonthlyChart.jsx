@@ -8,9 +8,23 @@ import {
   CartesianGrid,
 } from "recharts";
 
-import { monthlyProductionData } from "../../data/ChartData";
+function MonthlyChart({ darkMode, rawData = [] }) {
+  const chartData = [];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+  const currentYear = new Date().getFullYear();
+  
+  for (let i = 0; i < 12; i++) {
+    const total = rawData
+      .filter(item => {
+         if (!item.tanggal) return false;
+         const d = new Date(item.tanggal);
+         return d.getFullYear() === currentYear && d.getMonth() === i;
+      })
+      .reduce((sum, item) => sum + Number(item.telurBagus || 0), 0);
+      
+    chartData.push({ bulan: monthNames[i], telur: total });
+  }
 
-function MonthlyChart({ darkMode }) {
   return (
     <div
       className={`
@@ -28,7 +42,7 @@ function MonthlyChart({ darkMode }) {
 
       <div className="w-full h-[250px] sm:h-[300px]">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={monthlyProductionData}>
+          <BarChart data={chartData}>
             <CartesianGrid
               strokeDasharray="3 3"
               stroke={darkMode ? "#374151" : "#f0f0f0"}

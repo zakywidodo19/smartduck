@@ -1,15 +1,9 @@
-/* 
-  CONTOH IMPLEMENTASI SERVICE LAYER UNTUK KANDANG (FIRESTORE)
-  Layer ini memisahkan logika database dari komponen UI.
-*/
-
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc } from "firebase/firestore";
 import { db } from "../config/firebase";
 
-const collectionName = "kandang";
+const collectionName = "produksi";
 
-export const kandangService = {
-  // Mendapatkan semua data kandang
+export const produksiService = {
   getAll: async () => {
     try {
       const querySnapshot = await getDocs(collection(db, collectionName));
@@ -18,42 +12,39 @@ export const kandangService = {
         ...doc.data()
       }));
     } catch (error) {
-      console.error("Error fetching kandang:", error);
+      console.error("Error fetching produksi:", error);
       return [];
     }
   },
 
-  // Menambah data kandang baru
   create: async (data) => {
     try {
       const docRef = await addDoc(collection(db, collectionName), data);
       return docRef.id;
     } catch (error) {
-      console.error("Error creating kandang:", error);
+      console.error("Error creating produksi:", error);
       throw error;
     }
   },
 
-  // Memperbarui data kandang
   update: async (id, data) => {
     try {
-      const kandangRef = doc(db, collectionName, id);
-      await updateDoc(kandangRef, data);
+      const produksiRef = doc(db, collectionName, id);
+      await updateDoc(produksiRef, data);
       return true;
     } catch (error) {
-      console.error("Error updating kandang:", error);
+      console.error("Error updating produksi:", error);
       throw error;
     }
   },
 
-  // Menghapus data kandang
   delete: async (id) => {
     try {
-      const kandangRef = doc(db, collectionName, id);
-      await deleteDoc(kandangRef);
+      const produksiRef = doc(db, collectionName, id);
+      await deleteDoc(produksiRef);
       return true;
     } catch (error) {
-      console.error("Error deleting kandang:", error);
+      console.error("Error deleting produksi:", error);
       throw error;
     }
   }

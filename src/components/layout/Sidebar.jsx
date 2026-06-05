@@ -4,6 +4,7 @@ import {
   FaClipboardList,
   FaEgg,
   FaChartBar,
+  FaMoneyBillWave,
   FaTimes,
 } from "react-icons/fa";
 import { GiWheat } from "react-icons/gi";
@@ -26,12 +27,7 @@ function Sidebar({ darkMode, isOpen, onClose }) {
       icon: <FaWarehouse />,
       roles: ["admin", "petugas"],
     },
-    {
-      title: "Monitoring",
-      path: "/monitoring",
-      icon: <FaClipboardList />,
-      roles: ["admin", "petugas", "pimpinan"],
-    },
+
     {
       title: "Manajemen Pakan",
       path: "/pakan",
@@ -49,6 +45,12 @@ function Sidebar({ darkMode, isOpen, onClose }) {
       path: "/laporan",
       icon: <FaChartBar />,
       roles: ["admin", "petugas", "pimpinan"],
+    },
+    {
+      title: "Laporan Keuangan",
+      path: "/keuangan",
+      icon: <FaMoneyBillWave />,
+      roles: ["admin", "pimpinan"],
     },
   ];
 
