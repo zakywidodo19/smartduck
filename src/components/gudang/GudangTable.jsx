@@ -14,13 +14,33 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
                 darkMode ? "border-gray-700" : "border-gray-200"
               }`}
             >
-              <th className="p-4 text-left">Jenis Pakan</th>
-              <th className="p-4 text-left">Stok</th>
-              <th className="p-4 text-left">Minimum</th>
-              <th className="p-4 text-left">Status</th>
+              <th
+                className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+              >
+                Jenis Pakan
+              </th>
+              <th
+                className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+              >
+                Stok
+              </th>
+              <th
+                className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+              >
+                Minimum
+              </th>
+              <th
+                className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+              >
+                Status
+              </th>
 
               {(canEdit || canDelete) && (
-                <th className="p-4 text-left">Aksi</th>
+                <th
+                  className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                >
+                  Aksi
+                </th>
               )}
             </tr>
           </thead>
@@ -28,7 +48,10 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
           <tbody>
             {data.length === 0 ? (
               <tr>
-                <td colSpan="5" className="p-8 text-center">
+                <td
+                  colSpan="5"
+                  className={`text-center p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                >
                   📦 Belum ada data gudang
                 </td>
               </tr>
