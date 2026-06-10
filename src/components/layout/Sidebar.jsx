@@ -35,6 +35,12 @@ function Sidebar({ darkMode, isOpen, onClose }) {
       roles: ["admin", "petugas"],
     },
     {
+      title: "Gudang Pakan",
+      path: "/gudang",
+      icon: <FaWarehouse />,
+      roles: ["admin", "petugas", "pimpinan"],
+    },
+    {
       title: "Produksi Telur",
       path: "/produksi",
       icon: <FaEgg />,
@@ -117,7 +123,10 @@ function Sidebar({ darkMode, isOpen, onClose }) {
       {/* Footer Profile */}
       <div className="bg-green-800 p-4 rounded-xl flex items-center gap-3">
         <img
-          src={user?.avatar || "https://ui-avatars.com/api/?name=User&background=15803d&color=fff"}
+          src={
+            user?.avatar ||
+            "https://ui-avatars.com/api/?name=User&background=15803d&color=fff"
+          }
           alt="profile"
           className="w-10 h-10 rounded-full"
         />
@@ -125,9 +134,7 @@ function Sidebar({ darkMode, isOpen, onClose }) {
           <h3 className="font-semibold truncate text-sm">
             {user?.name || "User"}
           </h3>
-          <p className="text-xs text-green-200 truncate">
-            {getRoleLabel()}
-          </p>
+          <p className="text-xs text-green-200 truncate">{getRoleLabel()}</p>
         </div>
       </div>
     </div>

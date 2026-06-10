@@ -9,6 +9,7 @@ import Laporan from "./pages/laporan/Laporan";
 import Keuangan from "./pages/keuangan/Keuangan";
 import Pakan from "./pages/pakan/Pakan";
 import Login from "./pages/auth/Login";
+import Gudang from "./pages/gudang/Gudang";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -36,8 +37,6 @@ function App() {
                 </ProtectedRoute>
               }
             />
-
-
 
             <Route
               path="/pakan"
@@ -71,6 +70,14 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Keuangan />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/gudang"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "petugas"]}>
+                  <Gudang />
                 </ProtectedRoute>
               }
             />

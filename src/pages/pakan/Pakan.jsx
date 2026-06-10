@@ -7,6 +7,7 @@ import { pakanService } from "../../services/pakanService";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import PakanTable from "../../components/pakan/PakanTable";
 import PakanModal from "../../components/pakan/PakanModal";
+import { gudangService } from "../../services/gudangService";
 
 function Pakan() {
   const { hasPermission } = useAuth();
@@ -47,8 +48,7 @@ function Pakan() {
     const matchSearch =
       kTujuan.toLowerCase().includes(search.toLowerCase()) ||
       jPakan.toLowerCase().includes(search.toLowerCase());
-    const matchFilter =
-      filterJenis === "Semua" ? true : jPakan === filterJenis;
+    const matchFilter = filterJenis === "Semua" ? true : jPakan === filterJenis;
     return matchSearch && matchFilter;
   });
 
@@ -60,17 +60,27 @@ function Pakan() {
 
   // Save
   const handleSave = async (data) => {
-    if (editData) {
-      await pakanService.update(editData.id, data);
-      Swal.fire("Berhasil!", "Data pakan berhasil diperbarui", "success");
-    } else {
-      await pakanService.create(data);
-      Swal.fire("Berhasil!", "Data pakan berhasil ditambahkan", "success");
-    }
-    setIsModalOpen(false);
-    fetchData();
-  };
+    try {
+      if (editData) {
+        await pakanService.update(editData.id, data);
 
+        Swal.fire("Berhasil!", "Data pakan berhasil diperbarui", "success");
+      } else {
+        await gudangService.kurangiStok(data.jenisPakan, data.jumlah);
+
+        await pakanService.create(data);
+
+        Swal.fire("Berhasil!", "Distribusi pakan berhasil dicatat", "success");
+      }
+
+      setIsModalOpen(false);
+      setEditData(null);
+
+      fetchData();
+    } catch (error) {
+      Swal.fire("Gagal", error.message, "error");
+    }
+  };
   // Delete
   const handleDelete = async (id) => {
     const result = await Swal.fire({
@@ -112,7 +122,9 @@ function Pakan() {
               >
                 Manajemen Pakan
               </h1>
-              <p className={`mt-1 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
+              <p
+                className={`mt-1 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
                 Kelola data pakan peternakan bebek
               </p>
             </div>
@@ -130,29 +142,52 @@ function Pakan() {
                   flex items-center gap-2
                 "
               >
-                <GiWheat />
-                + Tambah Pakan
+                <GiWheat />+ Tambah Pakan
               </button>
             )}
           </div>
 
           {/* STATS */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            <div className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-              <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Data Pakan</p>
-              <h2 className={`text-2xl font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}>
+            <div
+              className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}
+            >
+              <p
+                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
+                Total Data Pakan
+              </p>
+              <h2
+                className={`text-2xl font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}
+              >
                 {pakanData.length}
               </h2>
             </div>
 
-            <div className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-              <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Pakan (Kg)</p>
-              <h2 className="text-2xl font-bold mt-1 text-orange-500">{totalPakan} Kg</h2>
+            <div
+              className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}
+            >
+              <p
+                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
+                Total Pakan (Kg)
+              </p>
+              <h2 className="text-2xl font-bold mt-1 text-orange-500">
+                {totalPakan} Kg
+              </h2>
             </div>
 
-            <div className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}>
-              <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Jenis Pakan</p>
-              <h2 className="text-2xl font-bold mt-1 text-blue-500">{jenisPakanSet.size} Jenis</h2>
+            <div
+              className={`rounded-2xl p-4 shadow-md ${darkMode ? "bg-gray-800" : "bg-white"}`}
+            >
+              <p
+                className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}
+              >
+                Jenis Pakan
+              </p>
+              <h2 className="text-2xl font-bold mt-1 text-blue-500">
+                {jenisPakanSet.size} Jenis
+              </h2>
             </div>
           </div>
 
@@ -228,7 +263,9 @@ function Pakan() {
               Prev
             </button>
 
-            <span className={`font-semibold text-sm ${darkMode ? "text-white" : "text-gray-700"}`}>
+            <span
+              className={`font-semibold text-sm ${darkMode ? "text-white" : "text-gray-700"}`}
+            >
               {currentPage} / {totalPages}
             </span>
 
