@@ -1,9 +1,17 @@
 import { FaMoon, FaSun, FaBars } from "react-icons/fa";
+
+import { ChevronDoubleRightIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import NotificationDropdown from "./NotificationDropdown";
 
-function Navbar({ darkMode, toggleDarkMode, onMenuClick }) {
+function Navbar({
+  darkMode,
+  toggleDarkMode,
+  onMenuClick,
+  sidebarHidden,
+  setSidebarHidden,
+}) {
   const navigate = useNavigate();
   const { user, logout, getRoleLabel } = useAuth();
 
@@ -23,36 +31,34 @@ function Navbar({ darkMode, toggleDarkMode, onMenuClick }) {
     >
       {/* LEFT */}
       <div className="flex items-center gap-3">
-        {/* Hamburger - mobile only */}
-        <button
-          onClick={onMenuClick}
-          className={`
-            lg:hidden p-2 rounded-xl transition-colors
-            ${
-              darkMode
-                ? "hover:bg-gray-700 text-gray-300"
-                : "hover:bg-gray-100 text-gray-600"
-            }
-          `}
-        >
-          <FaBars className="text-xl" />
-        </button>
+        {sidebarHidden && (
+          <button
+            onClick={() => setSidebarHidden(false)}
+            className={`
+        hidden lg:flex
+        p-2 rounded-xl
+        ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
+      `}
+          >
+            <ChevronDoubleRightIcon className="w-5 h-5" />
+          </button>
+        )}
 
         <div>
           <h2
             className={`
-              text-lg sm:text-2xl font-bold
-              ${darkMode ? "text-white" : "text-gray-800"}
-            `}
+        text-lg sm:text-2xl font-bold
+        ${darkMode ? "text-white" : "text-gray-800"}
+      `}
           >
             Dashboard
           </h2>
 
           <p
             className={`
-              text-xs sm:text-sm hidden sm:block
-              ${darkMode ? "text-gray-300" : "text-gray-500"}
-            `}
+        text-xs sm:text-sm hidden sm:block
+        ${darkMode ? "text-gray-300" : "text-gray-500"}
+      `}
           >
             SmartDuck Monitoring System
           </p>
@@ -82,7 +88,10 @@ function Navbar({ darkMode, toggleDarkMode, onMenuClick }) {
         {/* PROFILE */}
         <div className="flex items-center gap-2 sm:gap-3">
           <img
-            src={user?.avatar || "https://ui-avatars.com/api/?name=User&background=15803d&color=fff"}
+            src={
+              user?.avatar ||
+              "https://ui-avatars.com/api/?name=User&background=15803d&color=fff"
+            }
             alt="profile"
             className="w-8 h-8 sm:w-10 sm:h-10 rounded-full"
           />

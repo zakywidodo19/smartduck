@@ -10,8 +10,14 @@ import {
 import { GiWheat } from "react-icons/gi";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
-
-function Sidebar({ darkMode, isOpen, onClose }) {
+import { ChevronDoubleLeftIcon } from "@heroicons/react/24/outline";
+function Sidebar({
+  darkMode,
+  isOpen,
+  onClose,
+  sidebarHidden,
+  setSidebarHidden,
+}) {
   const { user, getRoleLabel } = useAuth();
 
   const allMenus = [
@@ -27,18 +33,18 @@ function Sidebar({ darkMode, isOpen, onClose }) {
       icon: <FaWarehouse />,
       roles: ["admin", "petugas"],
     },
+    {
+      title: "Gudang Pakan",
+      path: "/gudang",
+      icon: <FaWarehouse />,
+      roles: ["admin", "petugas", "pimpinan"],
+    },
 
     {
       title: "Manajemen Pakan",
       path: "/pakan",
       icon: <GiWheat />,
       roles: ["admin", "petugas"],
-    },
-    {
-      title: "Gudang Pakan",
-      path: "/gudang",
-      icon: <FaWarehouse />,
-      roles: ["admin", "petugas", "pimpinan"],
     },
     {
       title: "Produksi Telur",
@@ -68,30 +74,34 @@ function Sidebar({ darkMode, isOpen, onClose }) {
   return (
     <div
       className={`
-        w-64 h-screen bg-green-900 text-white
-        fixed top-0 left-0 p-5
-        flex flex-col z-50
-        transition-transform duration-300 ease-in-out
-        lg:translate-x-0
-        ${isOpen ? "translate-x-0" : "-translate-x-full"}
-      `}
+    w-64 h-screen bg-green-900 text-white
+    fixed top-0 left-0 p-5
+    flex flex-col z-50
+    transition-all duration-500 ease-in-out
+
+    ${
+      sidebarHidden
+        ? "-translate-x-full lg:-translate-x-full"
+        : isOpen
+          ? "translate-x-0"
+          : "-translate-x-full lg:translate-x-0"
+    }
+  `}
     >
       {/* Header with close button for mobile */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <h1 className="text-3xl font-bold text-orange-400">🦆 SmartDuck</h1>
+          <h1 className="text-3xl font-bold text-orange-400">SmartDuck</h1>
           <p className="text-sm text-green-200 mt-1">Monitoring Farm System</p>
         </div>
 
-        {/* Close button - mobile only */}
         <button
-          onClick={onClose}
-          className="lg:hidden p-2 rounded-lg hover:bg-green-800 transition-colors"
+          onClick={() => setSidebarHidden(true)}
+          className="hidden lg:flex p-2 rounded-lg hover:bg-green-800"
         >
-          <FaTimes />
+          <ChevronDoubleLeftIcon className="w-5 h-5" />
         </button>
       </div>
-
       {/* Menu */}
       <ul className="space-y-2 flex-1">
         {menus.map((menu, index) => (

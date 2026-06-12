@@ -53,18 +53,40 @@ function Gudang() {
   const totalPages = Math.ceil(filteredData.length / dataPerPage) || 1;
 
   const handleSave = async (data) => {
-    if (editData) {
-      await gudangService.update(editData.id, data);
+    try {
+      if (editData) {
+        await gudangService.update(editData.id, data);
 
-      Swal.fire("Berhasil!", "Data gudang berhasil diperbarui", "success");
-    } else {
-      await gudangService.create(data);
+        Swal.fire("Berhasil!", "Data gudang berhasil diperbarui", "success");
+      } else {
+        const existing = await gudangService.getByJenis(data.namaPakan);
 
-      Swal.fire("Berhasil!", "Data gudang berhasil ditambahkan", "success");
+        if (existing) {
+          await gudangService.update(existing.id, {
+            ...existing,
+            stok: Number(existing.stok) + Number(data.stok),
+            minimum: Number(data.minimum),
+          });
+
+          Swal.fire(
+            "Berhasil!",
+            `Stok ${data.namaPakan} berhasil ditambahkan`,
+            "success",
+          );
+        } else {
+          await gudangService.create(data);
+
+          Swal.fire("Berhasil!", "Data gudang berhasil ditambahkan", "success");
+        }
+      }
+
+      setIsModalOpen(false);
+      setEditData(null);
+
+      fetchData();
+    } catch (error) {
+      Swal.fire("Error", error.message, "error");
     }
-
-    setIsModalOpen(false);
-    fetchData();
   };
 
   const handleDelete = async (id) => {

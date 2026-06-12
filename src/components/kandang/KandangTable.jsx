@@ -65,7 +65,7 @@ function KandangTable({ kandangData, onEdit, onDelete, darkMode, canEdit, canDel
                     </div>
                   </td>
 
-                  <td className={`p-3 sm:p-4 font-medium ${darkMode ? "text-white" : "text-gray-800"}`}>
+                  <td className={`p-3 sm:p-4 font-medium ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                     {item.nama}
                   </td>
 

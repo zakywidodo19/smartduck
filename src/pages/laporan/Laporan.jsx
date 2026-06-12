@@ -338,7 +338,7 @@ function Laporan() {
                       className={`border-b last:border-b-0 ${darkMode ? "border-gray-700 hover:bg-gray-750" : "border-gray-100 hover:bg-gray-50 print:border-gray-200"}`}
                     >
                       <td
-                        className={`p-4 font-medium ${darkMode ? "text-white" : "text-gray-800 print:text-black"}`}
+                        className={`p-4 font-medium ${darkMode ? "text-gray-300" : "text-gray-600 print:text-black"}`}
                       >
                         {item.kandang}
                       </td>

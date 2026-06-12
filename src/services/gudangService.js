@@ -24,9 +24,12 @@ export const gudangService = {
   getByJenis: async (jenisPakan) => {
     const data = await gudangService.getAll();
 
-    return data.find((item) => item.namaPakan === jenisPakan);
+    return data.find(
+      (item) =>
+        item.namaPakan?.trim().toLowerCase() ===
+        jenisPakan?.trim().toLowerCase(),
+    );
   },
-
   create: async (data) => {
     return await addDoc(collection(db, collectionName), data);
   },
