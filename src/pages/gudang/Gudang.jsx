@@ -12,11 +12,9 @@ function Gudang() {
   const { hasPermission } = useAuth();
 
   const canCreate = hasPermission("canCreate");
-  const canEdit = hasPermission("canEdit");
   const canDelete = hasPermission("canDelete");
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
 
   const [gudangData, setGudangData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -54,35 +52,14 @@ function Gudang() {
 
   const handleSave = async (data) => {
     try {
-      if (editData) {
-        await gudangService.update(editData.id, data);
-
-        Swal.fire("Berhasil!", "Data gudang berhasil diperbarui", "success");
-      } else {
-        const existing = await gudangService.getByJenis(data.namaPakan);
-
-        if (existing) {
-          await gudangService.update(existing.id, {
-            ...existing,
-            stok: Number(existing.stok) + Number(data.stok),
-            minimum: Number(data.minimum),
-          });
-
-          Swal.fire(
-            "Berhasil!",
-            `Stok ${data.namaPakan} berhasil ditambahkan`,
-            "success",
-          );
-        } else {
-          await gudangService.create(data);
-
-          Swal.fire("Berhasil!", "Data gudang berhasil ditambahkan", "success");
-        }
-      }
+      await gudangService.tambahStok(data);
+      Swal.fire(
+        "Berhasil!",
+        `Stok ${data.namaPakan} berhasil ditambahkan`,
+        "success",
+      );
 
       setIsModalOpen(false);
-      setEditData(null);
-
       fetchData();
     } catch (error) {
       Swal.fire("Error", error.message, "error");
@@ -104,11 +81,6 @@ function Gudang() {
 
       fetchData();
     }
-  };
-
-  const handleEdit = (data) => {
-    setEditData(data);
-    setIsModalOpen(true);
   };
 
   const totalJenis = gudangData.length;
@@ -146,10 +118,7 @@ function Gudang() {
 
             {canCreate && (
               <button
-                onClick={() => {
-                  setEditData(null);
-                  setIsModalOpen(true);
-                }}
+                onClick={() => setIsModalOpen(true)}
                 className="
                   bg-green-700 hover:bg-green-800
                   text-white px-5 py-2.5 rounded-xl
@@ -251,10 +220,8 @@ function Gudang() {
           {/* TABLE */}
           <GudangTable
             data={currentData}
-            onEdit={handleEdit}
             onDelete={handleDelete}
             darkMode={darkMode}
-            canEdit={canEdit}
             canDelete={canDelete}
           />
 
@@ -297,12 +264,8 @@ function Gudang() {
           {/* MODAL */}
           <GudangModal
             isOpen={isModalOpen}
-            onClose={() => {
-              setIsModalOpen(false);
-              setEditData(null);
-            }}
+            onClose={() => setIsModalOpen(false)}
             onSave={handleSave}
-            editData={editData}
             darkMode={darkMode}
           />
         </>

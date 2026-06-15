@@ -1,4 +1,4 @@
-function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
+function GudangTable({ data, onDelete, darkMode, canDelete }) {
   return (
     <div
       className={`
@@ -7,14 +7,22 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
       `}
     >
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[600px]">
+        <table className="w-full table-auto">
           <thead>
             <tr
               className={`border-b ${darkMode ? "border-gray-700" : "border-gray-200"}`}
             >
               <th
                 className={`
-    p-4 text-left text-sm font-semibold
+    p-4 w-16 text-left text-sm font-semibold 
+    ${darkMode ? "text-white" : "text-gray-600"}
+  `}
+              >
+                No
+              </th>
+              <th
+                className={`
+    px-3 py-2 w-28 text-left text-sm font-semibold
     ${darkMode ? "text-white" : "text-gray-600"}
   `}
               >
@@ -22,7 +30,7 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
               </th>
               <th
                 className={`
-    p-4 text-left text-sm font-semibold
+    px-3 py-2 w-28 text-left text-sm font-semibold
     ${darkMode ? "text-white" : "text-gray-600"}
   `}
               >
@@ -30,7 +38,7 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
               </th>
               <th
                 className={`
-    p-4 text-left text-sm font-semibold
+    px-3 py-2 w-28 text-left text-sm font-semibold
     ${darkMode ? "text-white" : "text-gray-600"}
   `}
               >
@@ -38,16 +46,16 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
               </th>
               <th
                 className={`
-    p-4 text-left text-sm font-semibold
+    px-3 py-2 w-28 text-left text-sm font-semibold
     ${darkMode ? "text-white" : "text-gray-600"}
   `}
               >
                 Status
               </th>
 
-              {(canEdit || canDelete) && (
+              {canDelete && (
                 <th
-                  className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
+                  className={`text-center w-28 p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}
                 >
                   Aksi
                 </th>
@@ -66,10 +74,17 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
                 </td>
               </tr>
             ) : (
-              data.map((item) => (
+              data.map((item, index) => (
                 <tr key={item.id}>
                   <td
-                    className={`
+                    className={`text-left p-3 sm:p-4 font-medium ${
+                      darkMode ? "text-gray-300" : "text-gray-600"
+                    }`}
+                  >
+                    {index + 1}
+                  </td>
+                  <td
+                    className={` text-left
     p-4
     ${darkMode ? "text-gray-300" : "text-gray-600"}
   `}
@@ -77,7 +92,7 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
                     {item.namaPakan}
                   </td>
                   <td
-                    className={`
+                    className={` text-left
     p-4
     ${darkMode ? "text-gray-300" : "text-gray-600"}
   `}
@@ -86,7 +101,7 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
                   </td>
 
                   <td
-                    className={`
+                    className={`text-left
     p-4
     ${darkMode ? "text-gray-300" : "text-gray-600"}
   `}
@@ -96,7 +111,7 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
 
                   <td className="p-3 sm:p-4">
                     <span
-                      className={`
+                      className={`text-center
       px-3 py-1 rounded-full text-xs font-medium border
       ${
         item.stok <= item.minimum
@@ -113,25 +128,23 @@ function GudangTable({ data, onEdit, onDelete, darkMode, canEdit, canDelete }) {
                     </span>
                   </td>
 
-                  {(canEdit || canDelete) && (
-                    <td className="p-4 flex gap-2">
-                      {canEdit && (
-                        <button
-                          onClick={() => onEdit(item)}
-                          className="bg-blue-500 text-white px-3 py-1 rounded"
-                        >
-                          Edit
-                        </button>
-                      )}
-
-                      {canDelete && (
+                  {canDelete && (
+                    <td className="p-3 sm:p-4 text-center">
+                      <div className="flex justify-center">
                         <button
                           onClick={() => onDelete(item.id)}
-                          className="bg-red-500 text-white px-3 py-1 rounded"
+                          className="
+        bg-red-500 hover:bg-red-600
+        text-white
+        px-3 py-1.5
+        rounded-lg
+        text-sm
+        transition-colors
+      "
                         >
                           Hapus
                         </button>
-                      )}
+                      </div>
                     </td>
                   )}
                 </tr>

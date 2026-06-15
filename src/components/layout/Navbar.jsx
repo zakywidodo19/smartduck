@@ -31,14 +31,25 @@ function Navbar({
     >
       {/* LEFT */}
       <div className="flex items-center gap-3">
+        {/* MOBILE MENU BUTTON */}
+        <button
+          onClick={onMenuClick}
+          className={`
+            lg:hidden p-2 rounded-xl
+            ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
+          `}
+        >
+          <FaBars className="w-5 h-5" />
+        </button>
+
         {sidebarHidden && (
           <button
             onClick={() => setSidebarHidden(false)}
             className={`
-        hidden lg:flex
-        p-2 rounded-xl
-        ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
-      `}
+              hidden lg:flex
+              p-2 rounded-xl
+              ${darkMode ? "hover:bg-gray-700" : "hover:bg-gray-100"}
+            `}
           >
             <ChevronDoubleRightIcon className="w-5 h-5" />
           </button>

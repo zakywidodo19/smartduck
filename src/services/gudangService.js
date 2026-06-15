@@ -30,15 +30,35 @@ export const gudangService = {
         jenisPakan?.trim().toLowerCase(),
     );
   },
-  create: async (data) => {
-    return await addDoc(collection(db, collectionName), data);
+
+  tambahStok: async (data) => {
+    const existing = await gudangService.getByJenis(data.namaPakan);
+
+    if (existing) {
+      await updateDoc(doc(db, collectionName, existing.id), {
+        ...existing,
+        stok: Number(existing.stok) + Number(data.stok),
+        minimum: Number(data.minimum),
+      });
+    } else {
+      await addDoc(collection(db, collectionName), {
+        namaPakan: data.namaPakan,
+        stok: Number(data.stok),
+        minimum: Number(data.minimum),
+      });
+    }
+
+    await addDoc(collection(db, "transaksiGudang"), {
+      namaPakan: data.namaPakan,
+      jumlah: Number(data.stok),
+      tipe: "masuk",
+      keterangan: data.keterangan || "Penambahan stok",
+      tanggal: new Date().toISOString(),
+    });
+
+    return true;
   },
 
-  update: async (id, data) => {
-    const ref = doc(db, collectionName, id);
-
-    return await updateDoc(ref, data);
-  },
   delete: async (id) => {
     const ref = doc(db, collectionName, id);
 
@@ -47,22 +67,62 @@ export const gudangService = {
     return true;
   },
 
-  kurangiStok: async (jenisPakan, jumlah) => {
+  kurangiStok: async (jenisPakan, jumlah, keterangan) => {
     const item = await gudangService.getByJenis(jenisPakan);
 
     if (!item) {
-      throw new Error("Pakan tidak ditemukan di gudang");
+      throw new Error(`Pakan ${jenisPakan} tidak ditemukan di gudang`);
     }
 
     if (item.stok < jumlah) {
       throw new Error(`Stok ${jenisPakan} tidak cukup. Sisa ${item.stok} Kg`);
     }
 
-    await gudangService.update(item.id, {
+    await updateDoc(doc(db, collectionName, item.id), {
       ...item,
       stok: item.stok - jumlah,
     });
 
+    await addDoc(collection(db, "transaksiGudang"), {
+      namaPakan: jenisPakan,
+      jumlah: Number(jumlah),
+      tipe: "keluar",
+      keterangan: keterangan || "Distribusi pakan",
+      tanggal: new Date().toISOString(),
+    });
+
     return true;
+  },
+
+  kembalikanStok: async (jenisPakan, jumlah, keterangan) => {
+    const item = await gudangService.getByJenis(jenisPakan);
+    if (item) {
+      await updateDoc(doc(db, collectionName, item.id), {
+        ...item,
+        stok: item.stok + jumlah,
+      });
+
+      await addDoc(collection(db, "transaksiGudang"), {
+        namaPakan: jenisPakan,
+        jumlah: Number(jumlah),
+        tipe: "masuk",
+        keterangan: keterangan || "Pengembalian stok",
+        tanggal: new Date().toISOString(),
+      });
+    }
+  },
+
+  getRiwayatTransaksi: async () => {
+    try {
+      const snapshot = await getDocs(collection(db, "transaksiGudang"));
+      const data = snapshot.docs.map((d) => ({
+        id: d.id,
+        ...d.data(),
+      }));
+      return data.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+    } catch (error) {
+      console.error("Error fetching transaksi:", error);
+      return [];
+    }
   },
 };

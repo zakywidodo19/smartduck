@@ -62,38 +62,56 @@ function Pakan() {
   const handleSave = async (data) => {
     try {
       if (editData) {
-        await pakanService.update(editData.id, data);
+        if (editData.jenisPakan === data.jenisPakan) {
+          const selisih = data.jumlah - editData.jumlah;
+          if (selisih > 0) {
+            await gudangService.kurangiStok(data.jenisPakan, selisih, "Edit distribusi pakan");
+          } else if (selisih < 0) {
+            await gudangService.kembalikanStok(data.jenisPakan, Math.abs(selisih), "Edit distribusi pakan");
+          }
+        } else {
+          const itemBaru = await gudangService.getByJenis(data.jenisPakan);
+          if (!itemBaru || itemBaru.stok < data.jumlah) {
+            throw new Error(`Stok ${data.jenisPakan} tidak cukup. Sisa ${itemBaru?.stok || 0} Kg`);
+          }
+          await gudangService.kembalikanStok(editData.jenisPakan, editData.jumlah, "Edit distribusi pakan (kembali)");
+          await gudangService.kurangiStok(data.jenisPakan, data.jumlah, "Edit distribusi pakan (baru)");
+        }
 
+        await pakanService.update(editData.id, data);
         Swal.fire("Berhasil!", "Data pakan berhasil diperbarui", "success");
       } else {
-        await gudangService.kurangiStok(data.jenisPakan, data.jumlah);
-
+        await gudangService.kurangiStok(data.jenisPakan, data.jumlah, "Distribusi pakan");
         await pakanService.create(data);
-
         Swal.fire("Berhasil!", "Distribusi pakan berhasil dicatat", "success");
       }
 
       setIsModalOpen(false);
       setEditData(null);
-
       fetchData();
     } catch (error) {
       Swal.fire("Gagal", error.message, "error");
     }
   };
   // Delete
-  const handleDelete = async (id) => {
+  const handleDelete = async (item) => {
     const result = await Swal.fire({
       title: "Yakin ingin menghapus?",
+      text: "Stok pakan akan dikembalikan ke gudang.",
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Ya, Hapus!",
     });
 
     if (result.isConfirmed) {
-      await pakanService.delete(id);
-      Swal.fire("Terhapus!", "Data pakan berhasil dihapus", "success");
-      fetchData();
+      try {
+        await gudangService.kembalikanStok(item.jenisPakan, item.jumlah, "Hapus distribusi pakan");
+        await pakanService.delete(item.id);
+        Swal.fire("Terhapus!", "Data pakan berhasil dihapus", "success");
+        fetchData();
+      } catch (error) {
+        Swal.fire("Gagal", "Terjadi kesalahan saat menghapus data", "error");
+      }
     }
   };
 

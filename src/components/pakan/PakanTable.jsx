@@ -23,7 +23,7 @@ function PakanTable({ pakanData, onEdit, onDelete, darkMode, canEdit, canDelete 
                 Kandang Tujuan
               </th>
               {(canEdit || canDelete) && (
-                <th className={`text-left p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
+                <th className={`text-center p-3 sm:p-4 text-sm font-semibold ${darkMode ? "text-gray-300" : "text-gray-600"}`}>
                   Aksi
                 </th>
               )}
@@ -102,7 +102,7 @@ function PakanTable({ pakanData, onEdit, onDelete, darkMode, canEdit, canDelete 
 
                         {canDelete && (
                           <button
-                            onClick={() => onDelete(item.id || index)}
+                            onClick={() => onDelete(item)}
                             className="
                               bg-red-500 hover:bg-red-600
                               text-white px-3 py-1.5

@@ -1,22 +1,20 @@
 import { useEffect, useState } from "react";
 
-function GudangModal({ isOpen, onClose, onSave, editData, darkMode }) {
+function GudangModal({ isOpen, onClose, onSave, darkMode }) {
   const [formData, setFormData] = useState({
     namaPakan: "Konsentrat",
     stok: "",
     minimum: "",
+    keterangan: "",
   });
-
-  useEffect(() => {
-    if (editData) {
-      setFormData(editData);
-    }
-  }, [editData]);
 
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
-    e.preventDefault();
+    if (Number(formData.stok) <= 0) {
+      Swal.fire("Gagal", "Jumlah stok harus lebih dari 0 Kg", "error");
+      return;
+    }
 
     onSave({
       ...formData,
@@ -37,16 +35,19 @@ function GudangModal({ isOpen, onClose, onSave, editData, darkMode }) {
     >
       <div
         className={`
-          p-6 rounded-2xl w-full max-w-md
-          ${darkMode ? "bg-gray-800" : "bg-white"}
-        `}
+    p-6 rounded-2xl w-full max-w-md
+    transition-all duration-300
+    animate-in fade-in zoom-in-95
+    ${darkMode ? "bg-gray-800" : "bg-white"}
+  `}
+        onClick={(e) => e.stopPropagation()}
       >
         <h2
           className={`text-xl font-bold mb-4 ${
             darkMode ? "text-white" : "text-gray-800"
           }`}
         >
-          {editData ? "Edit" : "Tambah"} Stok
+          Tambah Stok Masuk
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -74,45 +75,100 @@ function GudangModal({ isOpen, onClose, onSave, editData, darkMode }) {
             <option>Pelet</option>
           </select>
 
-          <input
-            type="number"
-            placeholder="Stok"
-            value={formData.stok}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                stok: e.target.value,
-              })
-            }
-            className={`
-  w-full border p-3 rounded
-  ${
-    darkMode
-      ? "bg-gray-700 border-gray-600 text-white"
-      : "bg-white border-gray-300 text-gray-800"
-  }
-`}
-          />
+          <div>
+            <label
+              className={`block text-sm mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Jumlah Stok (Kg)
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              placeholder="Jumlah stok masuk"
+              value={formData.stok}
+              onChange={(e) => {
+                const value = e.target.value;
 
-          <input
-            type="number"
-            placeholder="Minimum"
-            value={formData.minimum}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                minimum: e.target.value,
-              })
-            }
-            className={`
-  w-full border p-3 rounded
-  ${
-    darkMode
-      ? "bg-gray-700 border-gray-600 text-white"
-      : "bg-white border-gray-300 text-gray-800"
-  }
-`}
-          />
+                if (Number(value) < 0) return;
+
+                setFormData({
+                  ...formData,
+                  stok: value,
+                });
+              }}
+              className={`
+    w-full border p-3 rounded
+    ${
+      darkMode
+        ? "bg-gray-700 border-gray-600 text-white"
+        : "bg-white border-gray-300 text-gray-800"
+    }
+  `}
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              className={`block text-sm mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Minimum Stok (Kg)
+            </label>
+            <input
+              type="number"
+              min="1"
+              step="1"
+              placeholder="Minimum stok sebelum menipis"
+              value={formData.minimum}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                if (Number(value) < 0) return;
+
+                setFormData({
+                  ...formData,
+                  minimum: value,
+                });
+              }}
+              className={`
+    w-full border p-3 rounded
+    ${
+      darkMode
+        ? "bg-gray-700 border-gray-600 text-white"
+        : "bg-white border-gray-300 text-gray-800"
+    }
+  `}
+              required
+            />
+          </div>
+
+          <div>
+            <label
+              className={`block text-sm mb-1 ${darkMode ? "text-gray-300" : "text-gray-700"}`}
+            >
+              Keterangan (Opsional)
+            </label>
+            <input
+              type="text"
+              placeholder="Contoh: Pembelian dari supplier A"
+              value={formData.keterangan}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  keterangan: e.target.value,
+                })
+              }
+              className={`
+    w-full border p-3 rounded
+    ${
+      darkMode
+        ? "bg-gray-700 border-gray-600 text-white"
+        : "bg-white border-gray-300 text-gray-800"
+    }
+  `}
+            />
+          </div>
 
           <div className="flex justify-end gap-3">
             <button
