@@ -10,6 +10,7 @@ import Keuangan from "./pages/keuangan/Keuangan";
 import Pakan from "./pages/pakan/Pakan";
 import Login from "./pages/auth/Login";
 import Gudang from "./pages/gudang/Gudang";
+import Bebek from "./pages/bebek/Bebek";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -25,6 +26,15 @@ function App() {
               element={
                 <ProtectedRoute>
                   <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/bebek"
+              element={
+                <ProtectedRoute allowedRoles={["admin", "petugas"]}>
+                  <Bebek />
                 </ProtectedRoute>
               }
             />

@@ -11,49 +11,73 @@ import PimpinanDashboard from "./PimpinanDashboard";
 import { kandangService } from "../../services/kandangService";
 import { pakanService } from "../../services/pakanService";
 import { produksiService } from "../../services/produksiService";
+import { bebekService } from "../../services/bebekService";
 
 function Dashboard() {
   const { user } = useAuth();
   
   const [stats, setStats] = useState({
-    totalBebek: 0,
+    totalBetina: 0,
+    totalJantan: 0,
+    totalBebekAktual: 0,
+    sisaKapasitas: 0,
     totalTelur: 0,
-    kandangAktif: 0,
-    kandangSakit: 0,
   });
 
   const [produksiData, setProduksiData] = useState([]);
   const [pakanData, setPakanData]       = useState([]);
   const [kandangList, setKandangList]   = useState([]);
+  const [bebekList, setBebekList]       = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [kandang, pakan, produksi] = await Promise.all([
+        const [kandang, pakan, produksi, bebek] = await Promise.all([
           kandangService.getAll(),
           pakanService.getAll(),
-          produksiService.getAll()
+          produksiService.getAll(),
+          bebekService.getAll()
         ]);
 
         setProduksiData(produksi);
         setPakanData(pakan);
         setKandangList(kandang);
+        setBebekList(bebek);
 
         const today = new Date().toISOString().split("T")[0];
         const safeKandang = kandang || [];
+        const safeBebek = bebek || [];
 
-        const totalBebek   = safeKandang.reduce((s, k) => s + Number(k?.kapasitas || 0), 0);
-        const aktif        = safeKandang.filter(k => (k?.status || "") === "Aktif").length;
-        const tidakAktif   = safeKandang.filter(k => (k?.status || "") !== "Aktif").length;
+        // Hitung Aktual Bebek
+        const totalBetina = safeBebek
+          .filter(b => b.jenis === "Betina" && b.status === "Sehat")
+          .reduce((s, b) => s + Number(b.populasi || 0), 0);
+          
+        const totalJantan = safeBebek
+          .filter(b => b.jenis === "Jantan" && b.status === "Sehat")
+          .reduce((s, b) => s + Number(b.populasi || 0), 0);
+          
+        const totalBebekAktual = safeBebek
+          .filter(b => b.status === "Sehat")
+          .reduce((s, b) => s + Number(b.populasi || 0), 0);
+
+        // Hitung Kapasitas Total
+        const totalKapasitas = safeKandang
+          .filter(k => k.status === "Aktif")
+          .reduce((s, k) => s + Number(k?.kapasitas || 0), 0);
+          
+        const sisaKapasitas = totalKapasitas - totalBebekAktual;
+
         const telurHariIni = produksi
           .filter(p => p.tanggal === today)
           .reduce((s, p) => s + Number(p.telurBagus || 0), 0);
 
         setStats({
-          totalBebek,
-          totalTelur:   telurHariIni,
-          kandangAktif: aktif,
-          kandangSakit: tidakAktif,
+          totalBetina,
+          totalJantan,
+          totalBebekAktual,
+          sisaKapasitas,
+          totalTelur: telurHariIni,
         });
       } catch (error) {
         console.error("Gagal mengambil data dashboard:", error);
@@ -95,12 +119,30 @@ function Dashboard() {
           {/* STATISTIK */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
             <StatCard
-              title="Total Populasi"
-              value={stats.totalBebek.toLocaleString()}
+              title="Populasi Betina"
+              value={stats.totalBetina.toLocaleString()}
+              color="text-pink-500"
+              darkMode={darkMode}
+              icon={<FaLeaf className="text-pink-500" />}
+              subtitle="Ekor Petelur"
+            />
+
+            <StatCard
+              title="Populasi Jantan"
+              value={stats.totalJantan.toLocaleString()}
+              color="text-blue-500"
+              darkMode={darkMode}
+              icon={<FaLeaf className="text-blue-500" />}
+              subtitle="Ekor Pejantan"
+            />
+
+            <StatCard
+              title="Total & Kapasitas"
+              value={stats.totalBebekAktual.toLocaleString()}
               color="text-green-500"
               darkMode={darkMode}
-              icon={<FaLeaf className="text-green-500" />}
-              subtitle="Ekor Bebek"
+              icon={<FaWarehouse className="text-green-500" />}
+              subtitle={`Sisa Ruang: ${stats.sisaKapasitas} Ekor`}
             />
 
             <StatCard
@@ -110,24 +152,6 @@ function Dashboard() {
               darkMode={darkMode}
               icon={<FaEgg className="text-orange-500" />}
               subtitle="Butir Telur"
-            />
-
-            <StatCard
-              title="Kandang Aktif"
-              value={stats.kandangAktif}
-              color="text-blue-500"
-              darkMode={darkMode}
-              icon={<FaWarehouse className="text-blue-500" />}
-              subtitle="Unit Beroperasi"
-            />
-
-            <StatCard
-              title="Perlu Perhatian"
-              value={stats.kandangSakit}
-              color="text-red-500"
-              darkMode={darkMode}
-              icon={<FaHeartbeat className="text-red-500" />}
-              subtitle="Kandang Warning"
             />
           </div>
 

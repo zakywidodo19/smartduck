@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FaHome,
   FaWarehouse,
@@ -14,14 +14,16 @@ import { GiWheat } from "react-icons/gi";
 import { NavLink } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
 import { useLocation } from "react-router-dom";
-import { ChevronDoubleLeftIcon } from "@heroicons/react/24/outline";
+import { ChevronDoubleLeftIcon, ChevronDownIcon, ChevronUpIcon } from "@heroicons/react/24/outline";
 
 function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
   const { user, getRoleLabel } = useAuth();
 
+  const location = useLocation();
+
   const [openMenus, setOpenMenus] = useState({
     operasional: true,
-    laporan: true,
+    laporan: false,
     master: false,
   });
 
@@ -39,18 +41,6 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
       icon: <FaDatabase className="mr-2" />,
       menus: [
         {
-          title: "Harga Pakan",
-          path: "/master-harga-pakan",
-          icon: <GiWheat />,
-          roles: ["admin"],
-        },
-        {
-          title: "Harga Telur",
-          path: "/master-harga-telur",
-          icon: <FaEgg />,
-          roles: ["admin"],
-        },
-        {
           title: "Data Kandang",
           path: "/kandang",
           icon: <FaWarehouse />,
@@ -61,6 +51,18 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
           path: "/bebek",
           icon: <FaEgg />,
           roles: ["admin", "petugas"],
+        },
+        {
+          title: "Harga Pakan",
+          path: "/master-harga-pakan",
+          icon: <GiWheat />,
+          roles: ["admin"],
+        },
+        {
+          title: "Harga Telur",
+          path: "/master-harga-telur",
+          icon: <FaEgg />,
+          roles: ["admin"],
         },
       ],
     },
@@ -109,7 +111,29 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
       ],
     },
   ];
-  const location = useLocation();
+
+  // Auto-open menu group if one of its items is active and close others
+  useEffect(() => {
+    let activeGroupKey = null;
+
+    menuGroups.forEach((group) => {
+      const isGroupActive = group.menus.some((menu) =>
+        location.pathname.startsWith(menu.path)
+      );
+      if (isGroupActive) {
+        activeGroupKey = group.key;
+      }
+    });
+
+    if (activeGroupKey) {
+      setOpenMenus({
+        operasional: false,
+        laporan: false,
+        master: false,
+        [activeGroupKey]: true,
+      });
+    }
+  }, [location.pathname]);
 
   return (
     <div
@@ -173,7 +197,7 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
 
         {menuGroups.map((group) => {
           const isGroupActive = group.menus.some((menu) =>
-            location.pathname.startsWith(menu.path)
+            location.pathname.startsWith(menu.path),
           );
 
           return (
@@ -197,20 +221,25 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
                   {group.icon}
                   <span className="font-semibold text-sm">{group.title}</span>
                 </div>
+                {openMenus[group.key] ? (
+                  <ChevronUpIcon className="w-4 h-4 transition-transform" />
+                ) : (
+                  <ChevronDownIcon className="w-4 h-4 transition-transform" />
+                )}
               </button>
 
-            {/* SUB MENU */}
-            {openMenus[group.key] && (
-              <div className="space-y-1">
-                {group.menus
-                  .filter((menu) => menu.roles.includes(user?.role))
-                  .map((menu) => (
-                    <NavLink
-                      key={menu.path}
-                      to={menu.path}
-                      onClick={onClose}
-                      className={({ isActive }) =>
-                        `
+              {/* SUB MENU */}
+              {openMenus[group.key] && (
+                <div className="space-y-1">
+                  {group.menus
+                    .filter((menu) => menu.roles.includes(user?.role))
+                    .map((menu) => (
+                      <NavLink
+                        key={menu.path}
+                        to={menu.path}
+                        onClick={onClose}
+                        className={({ isActive }) =>
+                          `
                           flex items-center gap-3
                           py-3 pr-3 pl-10 rounded-xl
                           transition-all duration-200
@@ -220,17 +249,17 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
                               : "hover:bg-green-800"
                           }
                         `
-                      }
-                    >
-                      <span>{menu.icon}</span>
-                      <span>{menu.title}</span>
-                    </NavLink>
-                  ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
+                        }
+                      >
+                        <span>{menu.icon}</span>
+                        <span>{menu.title}</span>
+                      </NavLink>
+                    ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* PROFILE */}
