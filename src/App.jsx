@@ -11,6 +11,8 @@ import Pakan from "./pages/pakan/Pakan";
 import Login from "./pages/auth/Login";
 import Gudang from "./pages/gudang/Gudang";
 import Bebek from "./pages/bebek/Bebek";
+import HargaPakan from "./pages/harga/HargaPakan";
+import HargaTelur from "./pages/harga/HargaTelur";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 function App() {
@@ -88,6 +90,24 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={["admin", "petugas"]}>
                   <Gudang />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/master-harga-pakan"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <HargaPakan />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/master-harga-telur"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <HargaTelur />
                 </ProtectedRoute>
               }
             />

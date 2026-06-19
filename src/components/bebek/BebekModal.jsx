@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { FaImage, FaTrash } from "react-icons/fa";
 import { kandangService } from "../../services/kandangService";
+import Swal from "sweetalert2";
 
-function BebekModal({ isOpen, onClose, onSave, editData, darkMode }) {
+function BebekModal({ isOpen, onClose, onSave, editData, darkMode, bebekData = [] }) {
   const [formData, setFormData] = useState({
     batch: "",
     kandangId: "",
@@ -96,6 +97,29 @@ function BebekModal({ isOpen, onClose, onSave, editData, darkMode }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (formData.kandangId) {
+      const selectedKandang = kandangList.find(k => k.id === formData.kandangId);
+      
+      const currentPopulasi = bebekData
+        .filter(b => b.kandangId === formData.kandangId && b.id !== editData?.id)
+        .reduce((sum, b) => sum + Number(b.populasi || 0), 0);
+        
+      const totalPopulasi = currentPopulasi + Number(formData.populasi);
+
+      if (selectedKandang && totalPopulasi > Number(selectedKandang.kapasitas)) {
+        Swal.fire({
+          icon: "error",
+          title: "Kapasitas Terlampaui!",
+          text: `Total populasi (${totalPopulasi} ekor) melebihi kapasitas kandang (${selectedKandang.kapasitas} ekor)! Saat ini sudah ada ${currentPopulasi} ekor di kandang ini.`,
+          confirmButtonColor: "#16a34a",
+          background: darkMode ? "#1f2937" : "#ffffff",
+          color: darkMode ? "#ffffff" : "#000000",
+        });
+        return;
+      }
+    }
+
     onSave(formData);
     
     setFormData({

@@ -96,7 +96,7 @@ function Produksi() {
   // Stats
   const totalHariIni = produksiData
     .filter(item => item.tanggal === new Date().toISOString().split("T")[0])
-    .reduce((sum, item) => sum + Number(item.telurBagus), 0);
+    .reduce((sum, item) => sum + Number(item.telurBagus || 0) + Number(item.telurRetak || 0), 0);
     
   const totalBulanIni = produksiData
     .filter(item => {
@@ -104,7 +104,7 @@ function Produksi() {
       const now = new Date();
       return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
     })
-    .reduce((sum, item) => sum + Number(item.telurBagus), 0);
+    .reduce((sum, item) => sum + Number(item.telurBagus || 0) + Number(item.telurRetak || 0), 0);
 
   return (
     <DashboardLayout>

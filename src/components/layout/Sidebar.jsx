@@ -22,7 +22,7 @@ function Sidebar({ isOpen, onClose, sidebarHidden, setSidebarHidden }) {
   const location = useLocation();
 
   const [openMenus, setOpenMenus] = useState({
-    operasional: true,
+    operasional: false,
     laporan: false,
     master: false,
   });

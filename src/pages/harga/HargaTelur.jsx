@@ -2,35 +2,37 @@ import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { FaEgg } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
-import { bebekService } from "../../services/bebekService";
+import { hargaTelurService } from "../../services/hargaTelurService";
 
 import DashboardLayout from "../../components/layout/DashboardLayout";
-import BebekTable from "../../components/bebek/BebekTable";
-import BebekModal from "../../components/bebek/BebekModal";
+import HargaTelurTable from "../../components/harga/HargaTelurTable";
+import HargaTelurModal from "../../components/harga/HargaTelurModal";
 
-function Bebek() {
+function HargaTelur() {
   const { hasPermission } = useAuth();
-  
+
   const canCreate = hasPermission("canCreate");
   const canEdit = hasPermission("canEdit");
   const canDelete = hasPermission("canDelete");
 
+  // MODAL
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
 
-  const [bebekData, setBebekData] = useState([]);
+  const [hargaData, setHargaData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // SEARCH
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState("Semua");
 
+  // PAGINATION
   const [currentPage, setCurrentPage] = useState(1);
   const dataPerPage = 5;
 
   const fetchData = async () => {
     setIsLoading(true);
-    const data = await bebekService.getAll();
-    setBebekData(data);
+    const data = await hargaTelurService.getAll();
+    setHargaData(data);
     setIsLoading(false);
   };
 
@@ -38,63 +40,63 @@ function Bebek() {
     fetchData();
   }, []);
 
-  const filteredData = (bebekData || []).filter((item) => {
-    const itemName = item?.batch || "";
-    const itemStatus = item?.status || "";
-    const matchSearch = itemName.toLowerCase().includes(search.toLowerCase());
-    const matchStatus = filterStatus === "Semua" ? true : itemStatus === filterStatus;
-    return matchSearch && matchStatus;
+  // FILTER DATA
+  const filteredData = (hargaData || []).filter((item) => {
+    const itemName = item?.jenisTelur || "";
+    return itemName.toLowerCase().includes(search.toLowerCase());
   });
 
+  // PAGINATION LOGIC
   const lastIndex = currentPage * dataPerPage;
   const firstIndex = lastIndex - dataPerPage;
   const currentData = filteredData.slice(firstIndex, lastIndex);
   const totalPages = Math.ceil(filteredData.length / dataPerPage) || 1;
 
+  // SAVE DATA
   const handleSave = async (data) => {
     try {
       if (editData) {
-        await bebekService.update(editData.id, data);
-        Swal.fire("Berhasil!", "Data bebek diperbarui", "success");
+        await hargaTelurService.update(editData.id, data);
+        Swal.fire("Berhasil!", "Harga telur diperbarui", "success");
       } else {
-        await bebekService.create(data);
-        Swal.fire("Berhasil!", "Data bebek ditambahkan", "success");
+        await hargaTelurService.create(data);
+        Swal.fire("Berhasil!", "Harga telur ditambahkan", "success");
       }
       setIsModalOpen(false);
+      setEditData(null);
       fetchData();
     } catch (error) {
       Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data", "error");
     }
   };
 
+  // DELETE
   const handleDelete = async (index) => {
     const itemToDelete = currentData[index];
-    
-    if (!itemToDelete || !itemToDelete.id) {
-       return;
-    }
+
+    if (!itemToDelete || !itemToDelete.id) return;
 
     const result = await Swal.fire({
       title: "Yakin ingin menghapus?",
+      text: `Harga telur "${itemToDelete.jenisTelur}" akan dihapus permanen.`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonText: "Ya, Hapus!",
+      cancelButtonText: "Batal",
+      confirmButtonColor: "#ef4444",
     });
 
     if (result.isConfirmed) {
-      try {
-        await bebekService.delete(itemToDelete.id);
-        Swal.fire("Terhapus!", "Data berhasil dihapus", "success");
-        fetchData();
-        if (currentData.length === 1 && currentPage > 1) {
-          setCurrentPage(currentPage - 1);
-        }
-      } catch (error) {
-        Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data", "error");
+      await hargaTelurService.delete(itemToDelete.id);
+      Swal.fire("Terhapus!", "Data harga telur berhasil dihapus", "success");
+      fetchData();
+      if (currentData.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
       }
     }
   };
 
+  // EDIT
   const handleEdit = (data) => {
     setEditData(data);
     setIsModalOpen(true);
@@ -104,6 +106,7 @@ function Bebek() {
     <DashboardLayout>
       {(darkMode) => (
         <>
+          {/* HEADER */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
             <div>
               <h1
@@ -112,11 +115,11 @@ function Bebek() {
                   ${darkMode ? "text-white" : "text-gray-800"}
                 `}
               >
-                Data Bebek
+                Harga Telur
               </h1>
 
               <p className={`mt-1 text-sm ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-                Kelola master data bebek dan populasi
+                Kelola master data harga telur bebek
               </p>
             </div>
 
@@ -134,15 +137,16 @@ function Bebek() {
                 "
               >
                 <FaEgg />
-                + Tambah Data
+                + Tambah Harga Telur
               </button>
             )}
           </div>
 
+          {/* SEARCH */}
           <div className="flex flex-col sm:flex-row gap-3 mb-6">
             <input
               type="text"
-              placeholder="Cari batch/kelompok..."
+              placeholder="Cari jenis telur..."
               value={search}
               onChange={(e) => {
                 setSearch(e.target.value);
@@ -159,46 +163,19 @@ function Bebek() {
                 }
               `}
             />
-
-            <select
-              value={filterStatus}
-              onChange={(e) => {
-                setFilterStatus(e.target.value);
-                setCurrentPage(1);
-              }}
-              className={`
-                border p-3 rounded-xl
-                focus:outline-none focus:ring-2 focus:ring-green-500
-                transition-all
-                ${
-                  darkMode
-                    ? "bg-gray-800 border-gray-700 text-white"
-                    : "bg-white border-gray-300"
-                }
-              `}
-            >
-              <option value="Semua">Semua Status</option>
-              <option value="Sehat">Sehat</option>
-              <option value="Sakit">Sakit</option>
-              <option value="Afkir">Afkir</option>
-            </select>
           </div>
 
-          {isLoading ? (
-            <div className={`p-8 text-center ${darkMode ? "text-gray-400" : "text-gray-500"}`}>
-              Memuat data...
-            </div>
-          ) : (
-            <BebekTable
-              bebekData={currentData}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              darkMode={darkMode}
-              canEdit={canEdit}
-              canDelete={canDelete}
-            />
-          )}
+          {/* TABLE */}
+          <HargaTelurTable
+            data={currentData}
+            onEdit={handleEdit}
+            onDelete={handleDelete}
+            darkMode={darkMode}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
 
+          {/* PAGINATION */}
           <div className="flex justify-center items-center gap-3 mt-6">
             <button
               onClick={() => setCurrentPage(currentPage - 1)}
@@ -230,13 +207,16 @@ function Bebek() {
             </button>
           </div>
 
-          <BebekModal
+          {/* MODAL */}
+          <HargaTelurModal
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false);
+              setEditData(null);
+            }}
             onSave={handleSave}
             editData={editData}
             darkMode={darkMode}
-            bebekData={bebekData}
           />
         </>
       )}
@@ -244,4 +224,4 @@ function Bebek() {
   );
 }
 
-export default Bebek;
+export default HargaTelur;

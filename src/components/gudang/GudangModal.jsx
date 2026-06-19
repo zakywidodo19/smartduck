@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
 
 function GudangModal({ isOpen, onClose, onSave, darkMode }) {
   const [formData, setFormData] = useState({
@@ -11,6 +12,8 @@ function GudangModal({ isOpen, onClose, onSave, darkMode }) {
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
+    e.preventDefault();
+    
     if (Number(formData.stok) <= 0) {
       Swal.fire("Gagal", "Jumlah stok harus lebih dari 0 Kg", "error");
       return;

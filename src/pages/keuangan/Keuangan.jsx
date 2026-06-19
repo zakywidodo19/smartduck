@@ -3,12 +3,10 @@ import DashboardLayout from "../../components/layout/DashboardLayout";
 import StatCard from "../../components/cards/StatCard";
 import { pakanService } from "../../services/pakanService";
 import { produksiService } from "../../services/produksiService";
+import { hargaPakanService } from "../../services/hargaPakanService";
+import { hargaTelurService } from "../../services/hargaTelurService";
 import { FaMoneyBillWave, FaArrowUp, FaArrowDown } from "react-icons/fa";
 import { GiWheat } from "react-icons/gi";
-
-// Harga asumsi — bisa disesuaikan
-const HARGA_TELUR_PER_BUTIR = 2000;   // Rp 2.000 per butir
-const BIAYA_PAKAN_PER_KG    = 5000;   // Rp 5.000 per kg
 
 const IDR = (n) =>
   "Rp " + Number(n).toLocaleString("id-ID");
@@ -23,12 +21,55 @@ function Keuangan() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [produksi, pakan] = await Promise.all([
+      const [produksi, pakan, daftarHargaPakan, daftarHargaTelur] = await Promise.all([
         produksiService.getAll(),
         pakanService.getAll(),
+        hargaPakanService.getAll(),
+        hargaTelurService.getAll()
       ]);
 
       const [filterYr, filterMo] = bulan.split("-").map(Number);
+
+      // Hitung harga dasar Telur (Per Butir)
+      let hargaTelurBagus = 2000;
+      let hargaTelurRetak = 1000;
+      const hargaTelurMap = {};
+
+      if (daftarHargaTelur && daftarHargaTelur.length > 0) {
+        // Buat map harga berdasarkan jenis
+        daftarHargaTelur.forEach(ht => {
+          let hargaPerButir = ht.harga;
+          if (ht.satuan === "Tray (30 Butir)") hargaPerButir = ht.harga / 30;
+          hargaTelurMap[ht.jenisTelur.toLowerCase()] = hargaPerButir;
+        });
+
+        // Set harga untuk telur bagus & retak
+        if (hargaTelurMap["telur bagus"]) {
+            hargaTelurBagus = hargaTelurMap["telur bagus"];
+        } else if (hargaTelurMap["telur bebek segar"]) {
+            hargaTelurBagus = hargaTelurMap["telur bebek segar"]; // fallback
+        } else {
+            const fallback = daftarHargaTelur.find(h => h.satuan === "Butir");
+            if (fallback) hargaTelurBagus = fallback.harga;
+        }
+
+        if (hargaTelurMap["telur retak"]) {
+            hargaTelurRetak = hargaTelurMap["telur retak"];
+        } else if (hargaTelurMap["telur rusak"]) {
+            hargaTelurRetak = hargaTelurMap["telur rusak"];
+        }
+      }
+
+      // Map Harga Pakan per Kg berdasarkan jenisPakan
+      const hargaPakanMap = {};
+      if (daftarHargaPakan && daftarHargaPakan.length > 0) {
+        daftarHargaPakan.forEach(hp => {
+          let hargaPerKg = hp.harga;
+          if (hp.satuan === "Karung (50 Kg)") hargaPerKg = hp.harga / 50;
+          else if (hp.satuan === "Karung (25 Kg)") hargaPerKg = hp.harga / 25;
+          hargaPakanMap[hp.jenisPakan.toLowerCase()] = hargaPerKg;
+        });
+      }
 
       // Pemasukan dari telur — group by tanggal
       const pemasukanMap = {};
@@ -37,7 +78,11 @@ function Keuangan() {
         const [yr, mo] = p.tanggal.split("-").map(Number);
         if (yr !== filterYr || mo !== filterMo) return;
         if (!pemasukanMap[p.tanggal]) pemasukanMap[p.tanggal] = 0;
-        pemasukanMap[p.tanggal] += Number(p.telurBagus || 0) * HARGA_TELUR_PER_BUTIR;
+        
+        const incomeBagus = Number(p.telurBagus || 0) * hargaTelurBagus;
+        const incomeRetak = Number(p.telurRetak || 0) * hargaTelurRetak;
+        
+        pemasukanMap[p.tanggal] += incomeBagus + incomeRetak;
       });
 
       // Pengeluaran dari pakan — group by tanggal
@@ -47,7 +92,13 @@ function Keuangan() {
         const [yr, mo] = p.tanggal.split("-").map(Number);
         if (yr !== filterYr || mo !== filterMo) return;
         if (!pengeluaranMap[p.tanggal]) pengeluaranMap[p.tanggal] = 0;
-        pengeluaranMap[p.tanggal] += Number(p.jumlah || 0) * BIAYA_PAKAN_PER_KG;
+        
+        let hargaPerKg = 5000; // default if not found
+        if (p.jenisPakan && hargaPakanMap[p.jenisPakan.toLowerCase()]) {
+            hargaPerKg = hargaPakanMap[p.jenisPakan.toLowerCase()];
+        }
+        
+        pengeluaranMap[p.tanggal] += Number(p.jumlah || 0) * hargaPerKg;
       });
 
       // Gabungkan semua tanggal unik
@@ -127,7 +178,7 @@ function Keuangan() {
               color="text-emerald-500"
               darkMode={darkMode}
               icon={<FaArrowUp className="text-emerald-500" />}
-              subtitle={`@Rp${HARGA_TELUR_PER_BUTIR.toLocaleString("id-ID")} / butir`}
+              subtitle="Sesuai Harga Telur (Master Data)"
             />
             <StatCard
               title="Total Pengeluaran (Pakan)"
@@ -135,7 +186,7 @@ function Keuangan() {
               color="text-red-500"
               darkMode={darkMode}
               icon={<FaArrowDown className="text-red-500" />}
-              subtitle={`@Rp${BIAYA_PAKAN_PER_KG.toLocaleString("id-ID")} / kg`}
+              subtitle="Sesuai Harga Pakan (Master Data)"
             />
             <StatCard
               title="Laba / Rugi"

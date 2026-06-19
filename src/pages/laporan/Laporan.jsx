@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { kandangService } from "../../services/kandangService";
 import { pakanService } from "../../services/pakanService";
 import { produksiService } from "../../services/produksiService";
+import { hargaPakanService } from "../../services/hargaPakanService";
+import { hargaTelurService } from "../../services/hargaTelurService";
 import DashboardLayout from "../../components/layout/DashboardLayout";
 import StatCard from "../../components/cards/StatCard";
 import { FaPrint, FaFilePdf, FaEgg, FaWarehouse, FaChartLine, FaCheckCircle } from "react-icons/fa";
@@ -13,6 +15,7 @@ function Laporan() {
   const [produksiData, setProduksiData] = useState([]);
   const [pakanData, setPakanData] = useState([]);
   const [laporanData, setLaporanData] = useState([]);
+  const [totalProduksiBulanIni, setTotalProduksiBulanIni] = useState(0);
   const [summary, setSummary] = useState({
     totalPendapatan: 0,
     totalPengeluaran: 0,
@@ -21,10 +24,12 @@ function Laporan() {
   // fetch all needed data once
   useEffect(() => {
     const fetchLaporan = async () => {
-      const [kandang, pakan, produksi] = await Promise.all([
+      const [kandang, pakan, produksi, daftarHargaPakan, daftarHargaTelur] = await Promise.all([
         kandangService.getAll(),
         pakanService.getAll(),
-        produksiService.getAll()
+        produksiService.getAll(),
+        hargaPakanService.getAll(),
+        hargaTelurService.getAll()
       ]);
       
       setKandangData(kandang);
@@ -33,6 +38,8 @@ function Laporan() {
       
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1; // 1-12
+
+      let grandTotalProduksi = 0;
 
       // Build laporan rows
       setLaporanData(
@@ -43,7 +50,9 @@ function Laporan() {
               const [yr, mo] = p.tanggal.split("-").map(Number);
               return yr === currentYear && mo === currentMonth && p.kandang === k.nama;
             })
-            .reduce((sum, p) => sum + Number(p.telurBagus || 0), 0);
+            .reduce((sum, p) => sum + Number(p.telurBagus || 0) + Number(p.telurRetak || 0), 0);
+          
+          grandTotalProduksi += produksiBulanIni;
 
           const pakanKandang = pakan.filter((p) => p.kandangTujuan === k.nama);
           const pakanTerakhir = pakanKandang.length > 0 ? pakanKandang[0].jenisPakan : "-";
@@ -58,16 +67,59 @@ function Laporan() {
           };
         })
       );
+      
+      setTotalProduksiBulanIni(grandTotalProduksi);
 
-      // Financial summary
-      const pricePerEgg = 2000; // IDR per egg
-      const costPerKgPakan = 5000; // IDR per kg of feed
+      // Financial summary based on dynamic prices
+      let hargaTelurBagus = 2000;
+      let hargaTelurRetak = 1000;
+      const hargaTelurMap = {};
+
+      if (daftarHargaTelur && daftarHargaTelur.length > 0) {
+        daftarHargaTelur.forEach(ht => {
+          let hargaPerButir = ht.harga;
+          if (ht.satuan === "Tray (30 Butir)") hargaPerButir = ht.harga / 30;
+          hargaTelurMap[ht.jenisTelur.toLowerCase()] = hargaPerButir;
+        });
+
+        // Set harga untuk telur bagus & retak
+        if (hargaTelurMap["telur bagus"]) {
+            hargaTelurBagus = hargaTelurMap["telur bagus"];
+        } else if (hargaTelurMap["telur bebek segar"]) {
+            hargaTelurBagus = hargaTelurMap["telur bebek segar"]; // fallback
+        } else {
+            const fallback = daftarHargaTelur.find(h => h.satuan === "Butir");
+            if (fallback) hargaTelurBagus = fallback.harga;
+        }
+
+        if (hargaTelurMap["telur retak"]) {
+            hargaTelurRetak = hargaTelurMap["telur retak"];
+        } else if (hargaTelurMap["telur rusak"]) {
+            hargaTelurRetak = hargaTelurMap["telur rusak"];
+        }
+      }
+
+      const hargaPakanMap = {};
+      if (daftarHargaPakan && daftarHargaPakan.length > 0) {
+        daftarHargaPakan.forEach(hp => {
+          let hargaPerKg = hp.harga;
+          if (hp.satuan === "Karung (50 Kg)") hargaPerKg = hp.harga / 50;
+          else if (hp.satuan === "Karung (25 Kg)") hargaPerKg = hp.harga / 25;
+          hargaPakanMap[hp.jenisPakan.toLowerCase()] = hargaPerKg;
+        });
+      }
 
       const totalPendapatan = produksi.reduce((sum, p) => {
-        return sum + Number(p.telurBagus || 0) * pricePerEgg;
+        const incomeBagus = Number(p.telurBagus || 0) * hargaTelurBagus;
+        const incomeRetak = Number(p.telurRetak || 0) * hargaTelurRetak;
+        return sum + incomeBagus + incomeRetak;
       }, 0);
 
       const totalPengeluaran = pakan.reduce((sum, p) => {
+        let costPerKgPakan = 5000;
+        if (p.jenisPakan && hargaPakanMap[p.jenisPakan.toLowerCase()]) {
+          costPerKgPakan = hargaPakanMap[p.jenisPakan.toLowerCase()];
+        }
         return sum + Number(p.jumlah || 0) * costPerKgPakan;
       }, 0);
 
@@ -191,7 +243,7 @@ function Laporan() {
                   <h1
                     className={`text-2xl font-bold mt-1 ${darkMode ? "text-white" : "text-gray-800"}`}
                   >
-                    0
+                    {totalProduksiBulanIni}
                   </h1>
                   <p
                     className={`text-xs mt-1 ${darkMode ? "text-green-400" : "text-green-600"}`}
