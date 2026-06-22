@@ -12,8 +12,7 @@ import Swal from "sweetalert2";
 function Laporan() {
   const [isExporting, setIsExporting] = useState(false);
   const [kandangData, setKandangData] = useState([]);
-  const [produksiData, setProduksiData] = useState([]);
-  const [pakanData, setPakanData] = useState([]);
+
   const [laporanData, setLaporanData] = useState([]);
   const [totalProduksiBulanIni, setTotalProduksiBulanIni] = useState(0);
   const [summary, setSummary] = useState({
@@ -33,8 +32,7 @@ function Laporan() {
       ]);
       
       setKandangData(kandang);
-      setPakanData(pakan);
-      setProduksiData(produksi);
+
       
       const currentYear = new Date().getFullYear();
       const currentMonth = new Date().getMonth() + 1; // 1-12

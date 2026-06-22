@@ -5,7 +5,7 @@ import ProductionChart from "../../components/cards/ProductionChart";
 import MonthlyChart from "../../components/cards/MonthlyChart";
 import FeedConsumptionChart from "../../components/cards/FeedConsumptionChart";
 import KandangPerformance from "../../components/cards/KandangPerformance";
-import { FaEgg, FaWarehouse, FaHeartbeat, FaLeaf } from "react-icons/fa";
+import { FaEgg, FaWarehouse, FaLeaf } from "react-icons/fa";
 import { useAuth } from "../../contexts/AuthContext";
 import PimpinanDashboard from "./PimpinanDashboard";
 import { kandangService } from "../../services/kandangService";
@@ -27,8 +27,7 @@ function Dashboard() {
   const [produksiData, setProduksiData] = useState([]);
   const [pakanData, setPakanData]       = useState([]);
   const [kandangList, setKandangList]   = useState([]);
-  const [bebekList, setBebekList]       = useState([]);
-
+  
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -42,8 +41,7 @@ function Dashboard() {
         setProduksiData(produksi);
         setPakanData(pakan);
         setKandangList(kandang);
-        setBebekList(bebek);
-
+        
         const today = new Date().toISOString().split("T")[0];
         const safeKandang = kandang || [];
         const safeBebek = bebek || [];

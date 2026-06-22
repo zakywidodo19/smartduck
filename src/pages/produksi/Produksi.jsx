@@ -16,8 +16,7 @@ function Produksi() {
   const canCreate = hasPermission("canCreate");
 
   const [produksiData, setProduksiData] = useState([]);
-  const [kandangData, setKandangData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -29,7 +28,7 @@ function Produksi() {
   const dataPerPage = 5;
 
   const fetchData = async () => {
-    setIsLoading(true);
+
     const [pData, kData] = await Promise.all([
       produksiService.getAll(),
       kandangService.getAll()
@@ -37,8 +36,7 @@ function Produksi() {
     // Sort by date descending
     pData.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
     setProduksiData(pData);
-    setKandangData(kData);
-    setIsLoading(false);
+
   };
 
   useEffect(() => {

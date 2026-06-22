@@ -17,7 +17,7 @@ function Gudang() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [gudangData, setGudangData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+
 
   const [search, setSearch] = useState("");
 
@@ -25,12 +25,12 @@ function Gudang() {
   const dataPerPage = 5;
 
   const fetchData = async () => {
-    setIsLoading(true);
+
 
     const data = await gudangService.getAll();
 
     setGudangData(data);
-    setIsLoading(false);
+
   };
 
   useEffect(() => {

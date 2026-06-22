@@ -65,7 +65,7 @@ function HargaPakan() {
       setIsModalOpen(false);
       setEditData(null);
       fetchData();
-    } catch (error) {
+    } catch {
       Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data", "error");
     }
   };

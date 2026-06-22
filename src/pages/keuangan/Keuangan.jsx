@@ -6,7 +6,7 @@ import { produksiService } from "../../services/produksiService";
 import { hargaPakanService } from "../../services/hargaPakanService";
 import { hargaTelurService } from "../../services/hargaTelurService";
 import { FaMoneyBillWave, FaArrowUp, FaArrowDown } from "react-icons/fa";
-import { GiWheat } from "react-icons/gi";
+
 
 const IDR = (n) =>
   "Rp " + Number(n).toLocaleString("id-ID");

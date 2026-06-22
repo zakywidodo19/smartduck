@@ -2,61 +2,6 @@ import { createContext, useContext, useState, useEffect, useCallback } from "rea
 
 const NotificationContext = createContext(null);
 
-// Helper to generate notifications based on monitoring data
-function generateSmartNotifications() {
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-
-  const notifications = [
-    {
-      id: 1,
-      type: "warning",
-      title: "Suhu Tinggi - Kandang B",
-      message: "Suhu kandang B mencapai 33°C, melebihi batas normal (30°C).",
-      time: timeStr,
-      read: false,
-      icon: "🌡️",
-    },
-    {
-      id: 2,
-      type: "danger",
-      title: "Stok Pakan Menipis",
-      message: "Stok pakan tersisa 15kg, segera lakukan pengisian ulang.",
-      time: timeStr,
-      read: false,
-      icon: "🌾",
-    },
-    {
-      id: 3,
-      type: "info",
-      title: "Produksi Meningkat",
-      message: "Produksi telur hari ini naik 12% dibanding kemarin.",
-      time: timeStr,
-      read: true,
-      icon: "🥚",
-    },
-    {
-      id: 4,
-      type: "warning",
-      title: "Kelembapan Rendah - Kandang D",
-      message: "Kelembapan kandang D turun ke 45%, di bawah batas minimum (55%).",
-      time: timeStr,
-      read: false,
-      icon: "💧",
-    },
-    {
-      id: 5,
-      type: "danger",
-      title: "Kualitas Udara Buruk - Kandang C",
-      message: "Kualitas udara kandang C terdeteksi buruk, perlu ventilasi tambahan.",
-      time: timeStr,
-      read: false,
-      icon: "💨",
-    },
-  ];
-
-  return notifications;
-}
 
 export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState(() => {

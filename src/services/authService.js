@@ -8,7 +8,7 @@
 
 export const authService = {
   // Login dengan Firebase Auth
-  login: async (email, password) => {
+  login: async () => {
     /*
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);

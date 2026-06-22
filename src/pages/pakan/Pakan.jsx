@@ -20,8 +20,7 @@ function Pakan() {
   const [editData, setEditData] = useState(null);
 
   const [pakanData, setPakanData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
+  
   // Search & Filter
   const [search, setSearch] = useState("");
   const [filterJenis, setFilterJenis] = useState("Semua");
@@ -31,11 +30,9 @@ function Pakan() {
   const dataPerPage = 5;
 
   const fetchData = async () => {
-    setIsLoading(true);
-    const data = await pakanService.getAll();
+        const data = await pakanService.getAll();
     setPakanData(data);
-    setIsLoading(false);
-  };
+      };
 
   useEffect(() => {
     fetchData();
@@ -89,7 +86,7 @@ function Pakan() {
       setIsModalOpen(false);
       setEditData(null);
       fetchData();
-    } catch (error) {
+    } catch {
       Swal.fire("Gagal", error.message, "error");
     }
   };
@@ -109,7 +106,7 @@ function Pakan() {
         await pakanService.delete(item.id);
         Swal.fire("Terhapus!", "Data pakan berhasil dihapus", "success");
         fetchData();
-      } catch (error) {
+      } catch {
         Swal.fire("Gagal", "Terjadi kesalahan saat menghapus data", "error");
       }
     }

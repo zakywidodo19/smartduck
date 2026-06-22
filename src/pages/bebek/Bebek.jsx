@@ -62,7 +62,7 @@ function Bebek() {
       }
       setIsModalOpen(false);
       fetchData();
-    } catch (error) {
+    } catch {
       Swal.fire("Gagal!", "Terjadi kesalahan saat menyimpan data", "error");
     }
   };
@@ -89,7 +89,7 @@ function Bebek() {
         if (currentData.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
-      } catch (error) {
+      } catch {
         Swal.fire("Gagal!", "Terjadi kesalahan saat menghapus data", "error");
       }
     }

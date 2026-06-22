@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Swal from "sweetalert2";
 
 function GudangModal({ isOpen, onClose, onSave, darkMode }) {

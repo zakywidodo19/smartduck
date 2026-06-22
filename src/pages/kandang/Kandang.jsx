@@ -21,8 +21,7 @@ function Kandang() {
   const [editData, setEditData] = useState(null);
 
   const [kandangData, setKandangData] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-
+  
   // SEARCH & FILTER
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("Semua");
@@ -32,11 +31,9 @@ function Kandang() {
   const dataPerPage = 5;
 
   const fetchData = async () => {
-    setIsLoading(true);
-    const data = await kandangService.getAll();
+        const data = await kandangService.getAll();
     setKandangData(data);
-    setIsLoading(false);
-  };
+      };
 
   useEffect(() => {
     fetchData();
